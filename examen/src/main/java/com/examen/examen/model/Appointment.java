@@ -21,4 +21,9 @@ public class Appointment {
     public void setServicio(String servicio) { this.servicio = servicio; }
     public LocalDateTime getFechaHora() { return fechaHora; }
     public void setFechaHora(LocalDateTime fechaHora) { this.fechaHora = fechaHora; }
+    // Dentro de tu clase Appointment.java
+    private int duracionMin;
+
+    public int getDuracionMin() { return duracionMin; }
+    public void setDuracionMin(int duracionMin) { this.duracionMin = duracionMin; }
 }

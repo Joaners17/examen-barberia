@@ -1,59 +1,104 @@
-// Simulación de Base de Datos de Usuarios
-const usersDB = [
-    { user: 'joan', pass: '1234', name: 'Joan Eras', avatar: 'J' },
-    { user: 'anthony', pass: '5678', name: 'Anthony', avatar: 'A' },
-    { user: 'admin', pass: 'admin', name: 'Sistema Central', avatar: 'S' }
-];
+// CONFIGURACIÓN DE USUARIOS
+const USERS = {
+    'joan': { pass: '1234', name: 'Joan Eras', avatar: 'J' },
+    'anthony': { pass: '5678', name: 'Anthony', avatar: 'A' },
+    'admin': { pass: 'admin', name: 'Super User', avatar: 'S' }
+};
 
 let selectedSvc = "";
 
-// LOGIN MULTI-USUARIO
-document.getElementById('loginForm').onsubmit = (e) => {
-    e.preventDefault();
+// --- SISTEMA DE NAVEGACIÓN ---
+function showTab(tabId) {
+    // Quitar activa de botones
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+
+    // Quitar activa de pestañas
+    document.querySelectorAll('.tab-pane').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + tabId).classList.add('active');
+}
+
+// --- LOGIN ---
+document.getElementById('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault(); // IMPORTANTE: Evita que la página se recargue
     const u = document.getElementById('user').value;
     const p = document.getElementById('pass').value;
 
-    const session = usersDB.find(x => x.user === u && x.pass === p);
-
-    if(session) {
-        // Personalizar Dashboard
-        document.getElementById('userName').innerText = session.name;
-        document.getElementById('avatarLetter').innerText = session.avatar;
-
+    if (USERS[u] && USERS[u].pass === p) {
+        document.getElementById('displayUserName').innerText = USERS[u].name;
+        document.getElementById('avatarIcon').innerText = USERS[u].avatar;
         document.getElementById('loginSection').style.display = 'none';
         document.getElementById('dashboardSection').style.display = 'flex';
-        initApp();
+        render();
     } else {
-        alert("Acceso denegado: Usuario no encontrado");
+        alert("Credenciales incorrectas");
     }
-};
+});
 
-function setSvc(el, svc) {
-    document.querySelectorAll('.b-option').forEach(b => b.classList.remove('active'));
+// --- LÓGICA DE CITAS ---
+function setS(el, svc) {
+    document.querySelectorAll('.b-opt').forEach(b => b.classList.remove('active'));
     el.classList.add('active');
     selectedSvc = svc;
 }
 
-function initApp() {
-    document.getElementById('currentDate').innerText = new Date().toLocaleDateString('es-CR', { weekday: 'long', day: 'numeric', month: 'long' });
-    render();
-}
+// Actualizar texto del slider de duración
+document.getElementById('duracion').oninput = function() {
+    document.getElementById('durValue').innerText = this.value;
+};
+
+document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
+    e.preventDefault(); // EVITA RESET
+
+    if(!selectedSvc) return alert("Selecciona un servicio");
+
+    const data = {
+        clienteNombre: document.getElementById('nombre').value,
+        fechaHora: document.getElementById('fecha').value,
+        servicio: selectedSvc,
+        duracionMin: document.getElementById('duracion').value // Nuevo campo
+    };
+
+    const res = await fetch('/api/appointments', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    });
+
+    if(res.ok) {
+        e.target.reset();
+        selectedSvc = "";
+        document.querySelectorAll('.b-opt').forEach(b => b.classList.remove('active'));
+        render();
+    }
+});
 
 async function render() {
     const res = await fetch('/api/appointments');
     const data = await res.json();
     const list = document.getElementById('appointmentsList');
+    document.getElementById('totalCount').innerText = data.length;
 
     list.innerHTML = data.map(c => `
-        <div class="glass-container" style="margin-bottom:15px; padding:20px; display:flex; justify-content:space-between; align-items:center;">
+        <div class="glass-card" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding:15px;">
             <div>
-                <span style="color:var(--accent); font-weight:800; font-size:0.8rem; text-transform:uppercase;">${c.servicio}</span>
-                <h4 style="margin:5px 0;">${c.clienteNombre}</h4>
-                <small style="opacity:0.6;">${new Date(c.fechaHora).toLocaleString()}</small>
+                <span style="color:var(--gold); font-size:0.7rem; font-weight:800;">${c.servicio.toUpperCase()} (${c.duracionMin} min)</span>
+                <h4 style="margin:3px 0;">${c.clienteNombre}</h4>
+                <small style="opacity:0.5;">${new Date(c.fechaHora).toLocaleString()}</small>
             </div>
-            <button onclick="del(${c.id})" style="background:none; border:none; color:#ff4d4d; cursor:pointer; font-size:1.2rem;">&times;</button>
+            <button onclick="del(${c.id})" style="background:none; border:none; color:red; cursor:pointer;">❌</button>
         </div>
     `).join('');
 }
 
-// RESTO DE FUNCIONES (fetch POST y DELETE igual que antes)
+async function del(id) {
+    await fetch(`/api/appointments/${id}`, { method: 'DELETE' });
+    render();
+}
+
+function logout() { location.reload(); }
+
+// Reloj en vivo
+setInterval(() => {
+    document.getElementById('liveClock').innerText = new Date().toLocaleTimeString();
+}, 1000);

@@ -3,80 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barber Management System | Enterprise</title>
+    <title>Zenith Barber Cloud | Enterprise Edition</title>
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<div id="loginSection" class="auth-wrapper">
-    <div class="glass-container login-card">
-        <div class="brand-header">
-            <div class="icon-box">✂️</div>
-            <h1>Zenith<span>Barber</span></h1>
+<section id="loginSection" class="auth-wrapper">
+    <div class="glass-card login-box">
+        <div class="logo-area">
+            <span class="icon">✂️</span>
+            <h1>Zenith<span>Admin</span></h1>
         </div>
         <form id="loginForm">
             <div class="input-field">
                 <input type="text" id="user" placeholder=" " required>
-                <label>Nombre de Usuario</label>
+                <label>Usuario</label>
             </div>
             <div class="input-field">
                 <input type="password" id="pass" placeholder=" " required>
                 <label>Contraseña</label>
             </div>
-            <button type="submit" class="btn-shine">INICIAR SESIÓN</button>
+            <button type="submit" class="btn-glow">ACCEDER AL SISTEMA</button>
         </form>
     </div>
-</div>
+</section>
 
-<div id="dashboardSection" class="dashboard-layout" style="display: none;">
-    <aside class="nav-sidebar">
-        <div class="user-profile">
-            <div class="user-avatar" id="avatarLetter">J</div>
-            <h3 id="userName">Joan Eras</h3>
-            <p>System Administrator</p>
+<section id="dashboardSection" class="main-layout" style="display: none;">
+    <aside class="sidebar">
+        <div class="user-info">
+            <div class="avatar" id="avatarIcon">J</div>
+            <div class="user-text">
+                <h4 id="displayUserName">Joan Eras</h4>
+                <span class="status-online">Online</span>
+            </div>
         </div>
-        <nav class="menu-items">
-            <div class="item active" onclick="switchTab('agenda')">📅 Gestión de Citas</div>
-            <div class="item" onclick="switchTab('usuarios')">👥 Usuarios</div>
-            <div class="item" onclick="switchTab('stats')">📊 Estadísticas</div>
+        <nav class="nav-menu">
+            <button class="nav-btn active" onclick="showTab('agenda')">📅 Agenda Citas</button>
+            <button class="nav-btn" onclick="showTab('servicios')">✂️ Lista Servicios</button>
+            <button class="nav-btn" onclick="showTab('stats')">📊 Reportes</button>
         </nav>
         <button onclick="logout()" class="btn-logout">Cerrar Sesión</button>
     </aside>
 
-    <main class="main-view">
-        <div id="tab-agenda" class="tab-pane">
-            <div class="view-header">
-                <h2>Agenda Inteligente</h2>
-                <div class="date-badge" id="currentDate"></div>
-            </div>
+    <main class="content-area">
+        <div id="tab-agenda" class="tab-pane active">
+            <header class="view-header">
+                <h2>Gestión de Citas</h2>
+                <p id="liveClock"></p>
+            </header>
 
-            <div class="dual-grid">
-                <section class="glass-container">
-                    <h3>Reservar Nueva Cita</h3>
+            <div class="split-view">
+                <div class="glass-card">
+                    <h3>Nueva Reservación</h3>
                     <form id="appointmentForm">
-                        <input type="text" id="nombre" placeholder="Nombre del Cliente" class="modern-input" required>
-                        <input type="datetime-local" id="fecha" class="modern-input" required>
+                        <input type="text" id="nombre" placeholder="Nombre del Cliente" class="m-input" required>
+                        <input type="datetime-local" id="fecha" class="m-input" required>
 
-                        <p class="section-label">SERVICIO REQUERIDO</p>
-                        <div class="bubble-container">
-                            <div class="b-option" onclick="setSvc(this, 'Corte')">Corte</div>
-                            <div class="b-option" onclick="setSvc(this, 'Barba')">Barba</div>
-                            <div class="b-option" onclick="setSvc(this, 'Combo')">Combo</div>
-                            <div class="b-option" onclick="setSvc(this, 'Facial')">Facial</div>
+                        <div class="duration-control">
+                            <label>Duración: <span id="durValue">30</span> min</label>
+                            <input type="range" id="duracion" min="15" max="120" step="15" value="30">
                         </div>
-                        <button type="submit" class="btn-main-action">CONFIRMAR REGISTRO</button>
-                    </form>
-                </section>
 
-                <section class="glass-container">
-                    <h3>Citas del Día</h3>
-                    <div id="appointmentsList" class="appointment-feed"></div>
-                </section>
+                        <p class="label-s">SERVICIO</p>
+                        <div class="bubbles">
+                            <div class="b-opt" onclick="setS(this, 'Corte')">Corte</div>
+                            <div class="b-opt" onclick="setS(this, 'Barba')">Barba</div>
+                            <div class="b-opt" onclick="setS(this, 'Combo')">Combo</div>
+                        </div>
+                        <button type="submit" class="btn-action">CONFIRMAR</button>
+                    </form>
+                </div>
+
+                <div class="glass-card">
+                    <h3>Citas en Proceso</h3>
+                    <div id="appointmentsList" class="scroll-v"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-servicios" class="tab-pane">
+            <h2>Servicios Disponibles</h2>
+            <div class="services-grid">
+                <div class="s-card"><h4>Corte Clásico</h4><p>₡7,000</p></div>
+                <div class="s-card"><h4>Degradado Pro</h4><p>₡9,000</p></div>
+                <div class="s-card"><h4>Barba King</h4><p>₡5,000</p></div>
+            </div>
+        </div>
+
+        <div id="tab-stats" class="tab-pane">
+            <h2>Análisis de Rendimiento</h2>
+            <div class="stat-box">
+                <p>Total Citas Hoy: <strong id="totalCount">0</strong></p>
             </div>
         </div>
     </main>
-</div>
+</section>
 
 <script src="js/app.js"></script>
 </body>
