@@ -6,13 +6,16 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class AppointmentService {
 
     private final AppointmentRepository repository;
 
-    // ✅ Inyección por constructor (mejor práctica que @Autowired en campo)
+    // Métodos de pago permitidos
+    private static final Set<String> METODOS_PAGO = Set.of("Efectivo", "Tarjeta", "Sinpe Móvil");
+
     public AppointmentService(AppointmentRepository repository) {
         this.repository = repository;
     }
@@ -22,30 +25,37 @@ public class AppointmentService {
     }
 
     public Appointment guardar(Appointment cita) {
-        // ✅ Validación: no permitir citas en el pasado
-        if (cita.getFechaHora() == null) {
-            throw new IllegalArgumentException("La fecha y hora son obligatorias.");
-        }
-        if (cita.getFechaHora().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("No se puede agendar una cita en el pasado.");
-        }
-        if (cita.getClienteNombre() == null || cita.getClienteNombre().isBlank()) {
+        if (cita.getClienteNombre() == null || cita.getClienteNombre().isBlank())
             throw new IllegalArgumentException("El nombre del cliente es obligatorio.");
-        }
-        if (cita.getServicio() == null || cita.getServicio().isBlank()) {
+
+        if (cita.getTelefono() == null || cita.getTelefono().isBlank())
+            throw new IllegalArgumentException("El teléfono del cliente es obligatorio.");
+
+        // ✅ Validar formato de teléfono (8 dígitos)
+        if (!cita.getTelefono().matches("\\d{8}"))
+            throw new IllegalArgumentException("El teléfono debe tener 8 dígitos.");
+
+        if (cita.getServicio() == null || cita.getServicio().isBlank())
             throw new IllegalArgumentException("El servicio es obligatorio.");
-        }
-        if (cita.getDuracionMin() <= 0) {
+
+        if (cita.getMetodoPago() == null || !METODOS_PAGO.contains(cita.getMetodoPago()))
+            throw new IllegalArgumentException("Método de pago inválido. Use: Efectivo, Tarjeta o Sinpe Móvil.");
+
+        if (cita.getFechaHora() == null)
+            throw new IllegalArgumentException("La fecha y hora son obligatorias.");
+
+        if (cita.getFechaHora().isBefore(LocalDateTime.now()))
+            throw new IllegalArgumentException("No se puede agendar una cita en el pasado.");
+
+        if (cita.getDuracionMin() <= 0)
             throw new IllegalArgumentException("La duración debe ser mayor a 0 minutos.");
-        }
+
         return repository.save(cita);
     }
 
     public void eliminar(Long id) {
-        // ✅ Verificar que la cita exista antes de eliminar
-        if (!repository.existsById(id)) {
+        if (!repository.existsById(id))
             throw new IllegalArgumentException("No existe una cita con ID: " + id);
-        }
         repository.deleteById(id);
     }
 }

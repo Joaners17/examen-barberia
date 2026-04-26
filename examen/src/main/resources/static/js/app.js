@@ -1,19 +1,18 @@
 // ============================================================
-// ZENITH BARBER CLOUD — app.js (mejorado)
+// ZENITH BARBER CLOUD — app.js (v2)
 // ============================================================
 
-// ✅ USUARIOS — Solo para demo frontend.
-// En producción, el login debe validarse contra el backend con JWT.
 const USERS = {
     'joan':    { pass: '1234',  name: 'Joan Eras',  avatar: 'J' },
     'anthony': { pass: '5678',  name: 'Anthony',    avatar: 'A' },
     'admin':   { pass: 'admin', name: 'Super User', avatar: 'S' }
 };
 
-let selectedSvc = "";
+let selectedSvc  = "";
+let selectedPago = "";
 
 // ============================================================
-// TOAST NOTIFICATIONS (reemplaza los alert())
+// TOAST
 // ============================================================
 function showToast(msg, type = 'success', duration = 3500) {
     let container = document.getElementById('toast-container');
@@ -22,12 +21,10 @@ function showToast(msg, type = 'success', duration = 3500) {
         container.id = 'toast-container';
         document.body.appendChild(container);
     }
-
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.textContent = msg;
     container.appendChild(toast);
-
     setTimeout(() => {
         toast.style.opacity = '0';
         toast.style.transition = 'opacity 0.3s ease';
@@ -36,25 +33,15 @@ function showToast(msg, type = 'success', duration = 3500) {
 }
 
 // ============================================================
-// NAVEGACIÓN DE TABS
+// NAVEGACIÓN
 // ============================================================
-
-// ✅ Recibe el evento como parámetro — evita el uso de `event` global
-function showTab(tabId, btn) {
+function showTab(tabId) {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-
+    event.currentTarget.classList.add('active');
     document.querySelectorAll('.tab-pane').forEach(t => t.classList.remove('active'));
     document.getElementById('tab-' + tabId).classList.add('active');
+    if (tabId === 'servicios') renderServicios();
 }
-
-// Asignar listeners a los botones del nav (en lugar de onclick en HTML)
-document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const tab = btn.getAttribute('data-tab');
-        if (tab) showTab(tab, btn);
-    });
-});
 
 // ============================================================
 // LOGIN
@@ -70,23 +57,58 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
         document.getElementById('loginSection').style.display    = 'none';
         document.getElementById('dashboardSection').style.display = 'flex';
         render();
+        cargarBubblesServicios();
     } else {
-        // ✅ Toast en vez de alert()
         showToast('Usuario o contraseña incorrectos.', 'error');
     }
 });
 
 // ============================================================
-// SELECCIÓN DE SERVICIO
+// BURBUJAS DE SERVICIOS — cargadas desde el backend
 // ============================================================
-function setS(el, svc) {
+async function cargarBubblesServicios() {
+    try {
+        const res = await fetch('/api/servicios');
+        if (!res.ok) return;
+        const servicios = await res.json();
+
+        const container = document.querySelector('.bubbles');
+        container.innerHTML = '';
+        selectedSvc = '';
+
+        servicios.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'b-opt';
+            div.textContent = s.nombre;
+            div.addEventListener('click', () => setS(div, s.nombre, s.duracionMin));
+            container.appendChild(div);
+        });
+    } catch (err) {
+        showToast('No se pudieron cargar los servicios.', 'error');
+    }
+}
+
+function setS(el, svc, duracion) {
     document.querySelectorAll('.b-opt').forEach(b => b.classList.remove('active'));
     el.classList.add('active');
     selectedSvc = svc;
+    if (duracion) {
+        document.getElementById('duracion').value = Math.min(duracion, 120);
+        document.getElementById('durValue').innerText = Math.min(duracion, 120);
+    }
 }
 
 // ============================================================
-// SLIDER DE DURACIÓN
+// MÉTODO DE PAGO
+// ============================================================
+function setPago(el, pago) {
+    document.querySelectorAll('.pago-opt').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    selectedPago = pago;
+}
+
+// ============================================================
+// SLIDER DURACIÓN
 // ============================================================
 document.getElementById('duracion').addEventListener('input', function () {
     document.getElementById('durValue').innerText = this.value;
@@ -98,14 +120,16 @@ document.getElementById('duracion').addEventListener('input', function () {
 document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    if (!selectedSvc) {
-        showToast('Selecciona un servicio antes de confirmar.', 'error');
+    if (!selectedSvc)  { showToast('Selecciona un servicio.', 'error'); return; }
+    if (!selectedPago) { showToast('Selecciona un método de pago.', 'error'); return; }
+
+    const telefono = document.getElementById('telefono').value.trim();
+    if (!/^\d{8}$/.test(telefono)) {
+        showToast('El teléfono debe tener exactamente 8 dígitos.', 'error');
         return;
     }
 
     const fechaVal = document.getElementById('fecha').value;
-
-    // ✅ Validar que la fecha no sea en el pasado
     if (new Date(fechaVal) < new Date()) {
         showToast('No puedes agendar una cita en el pasado.', 'error');
         return;
@@ -113,10 +137,11 @@ document.getElementById('appointmentForm').addEventListener('submit', async (e) 
 
     const data = {
         clienteNombre: document.getElementById('nombre').value.trim(),
-        fechaHora:     fechaVal,
-        servicio:      selectedSvc,
-        // ✅ Convertir a número entero (antes se enviaba como string)
-        duracionMin:   parseInt(document.getElementById('duracion').value, 10)
+        telefono,
+        fechaHora:   fechaVal,
+        servicio:    selectedSvc,
+        metodoPago:  selectedPago,
+        duracionMin: parseInt(document.getElementById('duracion').value, 10)
     };
 
     const submitBtn = e.target.querySelector('button[type="submit"]');
@@ -133,18 +158,16 @@ document.getElementById('appointmentForm').addEventListener('submit', async (e) 
         if (res.ok) {
             e.target.reset();
             document.getElementById('durValue').innerText = '30';
-            selectedSvc = '';
-            document.querySelectorAll('.b-opt').forEach(b => b.classList.remove('active'));
+            selectedSvc = ''; selectedPago = '';
+            document.querySelectorAll('.b-opt, .pago-opt').forEach(b => b.classList.remove('active'));
             showToast('✅ Cita confirmada correctamente.');
             render();
         } else {
-            // ✅ Muestra el mensaje de error del backend
             const errText = await res.text();
             showToast(errText || 'Error al guardar la cita.', 'error');
         }
     } catch (err) {
-        // ✅ Manejo de errores de red
-        showToast('Error de conexión. Verifica tu red.', 'error');
+        showToast('Error de conexión.', 'error');
     } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'CONFIRMAR';
@@ -152,31 +175,22 @@ document.getElementById('appointmentForm').addEventListener('submit', async (e) 
 });
 
 // ============================================================
-// RENDERIZAR LISTA DE CITAS
+// RENDERIZAR CITAS
 // ============================================================
 async function render() {
     try {
         const res = await fetch('/api/appointments');
-
-        if (!res.ok) {
-            showToast('Error al cargar las citas.', 'error');
-            return;
-        }
+        if (!res.ok) { showToast('Error al cargar las citas.', 'error'); return; }
 
         const data = await res.json();
         const list = document.getElementById('appointmentsList');
         document.getElementById('totalCount').innerText = data.length;
 
         if (data.length === 0) {
-            list.innerHTML = `
-                <div class="empty-state">
-                    <span>📅</span>
-                    No hay citas registradas aún.
-                </div>`;
+            list.innerHTML = `<div class="empty-state"><span>📅</span>No hay citas registradas aún.</div>`;
             return;
         }
 
-        // ✅ Se usa DOM API en lugar de innerHTML con datos del servidor (previene XSS)
         list.innerHTML = '';
         data.forEach(c => {
             const card = document.createElement('div');
@@ -186,17 +200,21 @@ async function render() {
 
             const svcLabel = document.createElement('div');
             svcLabel.className = 'svc-label';
-            // ✅ textContent previene XSS (no interpreta HTML)
-            svcLabel.textContent = `${c.servicio} · ${c.duracionMin} min`;
+            svcLabel.textContent = `${c.servicio} · ${c.duracionMin} min · ${c.metodoPago}`;
 
             const nombre = document.createElement('h4');
             nombre.textContent = c.clienteNombre;
+
+            const tel = document.createElement('small');
+            tel.style.display = 'block';
+            tel.textContent = `📞 ${c.telefono}`;
 
             const fecha = document.createElement('small');
             fecha.textContent = new Date(c.fechaHora).toLocaleString('es-CR');
 
             info.appendChild(svcLabel);
             info.appendChild(nombre);
+            info.appendChild(tel);
             info.appendChild(fecha);
 
             const delBtn = document.createElement('button');
@@ -209,7 +227,6 @@ async function render() {
             card.appendChild(delBtn);
             list.appendChild(card);
         });
-
     } catch (err) {
         showToast('No se pudo conectar con el servidor.', 'error');
     }
@@ -219,24 +236,112 @@ async function render() {
 // ELIMINAR CITA
 // ============================================================
 async function del(id, cardEl) {
-    // ✅ Confirmación antes de eliminar
-    if (!confirm('¿Estás seguro de que quieres eliminar esta cita?')) return;
-
+    if (!confirm('¿Eliminar esta cita?')) return;
     try {
         const res = await fetch(`/api/appointments/${id}`, { method: 'DELETE' });
-
         if (res.ok) {
-            // ✅ Animación de salida antes de actualizar
             if (cardEl) {
                 cardEl.style.opacity = '0';
                 cardEl.style.transition = 'opacity 0.3s ease';
                 setTimeout(() => render(), 300);
-            } else {
-                render();
-            }
+            } else render();
             showToast('Cita eliminada.');
         } else {
             showToast('No se pudo eliminar la cita.', 'error');
+        }
+    } catch (err) {
+        showToast('Error de conexión.', 'error');
+    }
+}
+
+// ============================================================
+// GESTIÓN DE SERVICIOS
+// ============================================================
+async function renderServicios() {
+    try {
+        const res = await fetch('/api/servicios');
+        if (!res.ok) return;
+        const servicios = await res.json();
+
+        const grid = document.getElementById('serviciosGrid');
+        grid.innerHTML = '';
+
+        servicios.forEach(s => {
+            const card = document.createElement('div');
+            card.className = 's-card';
+
+            const h4 = document.createElement('h4');
+            h4.textContent = s.nombre;
+
+            const precio = document.createElement('p');
+            precio.textContent = `₡${s.precio.toLocaleString()}`;
+
+            const dur = document.createElement('small');
+            dur.textContent = `${s.duracionMin} min`;
+            dur.style.color = 'rgba(255,255,255,0.5)';
+            dur.style.display = 'block';
+            dur.style.marginBottom = '12px';
+
+            const btn = document.createElement('button');
+            btn.className = 'btn-delete';
+            btn.style.width = '100%';
+            btn.textContent = 'Eliminar';
+            btn.addEventListener('click', () => eliminarServicio(s.id));
+
+            card.appendChild(h4);
+            card.appendChild(precio);
+            card.appendChild(dur);
+            card.appendChild(btn);
+            grid.appendChild(card);
+        });
+    } catch (err) {
+        showToast('Error cargando servicios.', 'error');
+    }
+}
+
+async function agregarServicio() {
+    const nombre   = document.getElementById('svcNombre').value.trim();
+    const precio   = parseInt(document.getElementById('svcPrecio').value, 10);
+    const duracion = parseInt(document.getElementById('svcDuracion').value, 10);
+
+    if (!nombre || !precio || !duracion) {
+        showToast('Completá todos los campos del servicio.', 'error');
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/servicios', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, precio, duracionMin: duracion })
+        });
+
+        if (res.ok) {
+            document.getElementById('svcNombre').value   = '';
+            document.getElementById('svcPrecio').value   = '';
+            document.getElementById('svcDuracion').value = '';
+            showToast('✅ Servicio agregado.');
+            renderServicios();
+            cargarBubblesServicios();
+        } else {
+            const err = await res.text();
+            showToast(err || 'Error al agregar servicio.', 'error');
+        }
+    } catch (err) {
+        showToast('Error de conexión.', 'error');
+    }
+}
+
+async function eliminarServicio(id) {
+    if (!confirm('¿Eliminar este servicio?')) return;
+    try {
+        const res = await fetch(`/api/servicios/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            showToast('Servicio eliminado.');
+            renderServicios();
+            cargarBubblesServicios();
+        } else {
+            showToast('No se pudo eliminar.', 'error');
         }
     } catch (err) {
         showToast('Error de conexión.', 'error');
@@ -254,12 +359,11 @@ function logout() {
 }
 
 // ============================================================
-// RELOJ EN VIVO
+// RELOJ
 // ============================================================
 function updateClock() {
     const el = document.getElementById('liveClock');
     if (el) el.innerText = new Date().toLocaleTimeString('es-CR');
 }
-
 updateClock();
 setInterval(updateClock, 1000);
