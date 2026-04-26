@@ -3,77 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barber Pro | Sistema de Gestión</title>
+    <title>Barber Pro Max | Engineering Edition</title>
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<div id="loginSection" class="full-screen">
-    <div class="glass-card login-container">
-        <div class="logo">💈</div>
-        <h1>Barber Admin</h1>
-        <p>Bienvenido de vuelta, Joan</p>
+<div id="loginSection" class="auth-screen">
+    <div class="glass-card login-box">
+        <div class="shimmer"></div>
+        <h1>Barber<span>Admin</span></h1>
         <form id="loginForm">
             <input type="text" id="user" placeholder="Usuario" required>
             <input type="password" id="pass" placeholder="Contraseña" required>
-            <button type="submit" class="btn-primary">Entrar al Sistema</button>
+            <button type="submit" class="btn-glow">ACCEDER</button>
         </form>
     </div>
 </div>
 
 <div id="dashboardSection" style="display: none;">
-    <nav class="sidebar">
-        <div class="profile-info">
-            <div class="avatar">JE</div>
-            <h3>Joan Eras</h3>
-            <span>Admin</span>
-        </div>
-        <ul class="nav-links">
-            <li onclick="showTab('agenda')" class="active">📅 Agenda</li>
-            <li onclick="showTab('servicios')">✂️ Servicios</li>
-            <li onclick="showTab('perfil')">👤 Perfil</li>
-        </ul>
-        <button onclick="logout()" class="btn-logout">Cerrar Sesión</button>
-    </nav>
+    <aside class="sidebar">
+        <div class="brand-logo">💈 PRO</div>
+        <nav>
+            <div class="nav-item active" onclick="showTab('agenda')">📅 Agenda</div>
+            <div class="nav-item" onclick="showTab('servicios')">✂️ Servicios</div>
+        </nav>
+        <button onclick="logout()" class="btn-exit">Salir</button>
+    </aside>
 
-    <main class="content">
+    <main class="main-content">
         <div id="tab-agenda" class="tab-content">
-            <header class="content-header">
-                <h2>Gestión de Citas</h2>
-                <p>Administra los turnos de hoy</p>
-            </header>
+            <div class="header-main">
+                <h2>Panel de Control</h2>
+                <p>Sincronización en tiempo real activa</p>
+            </div>
 
-            <div class="grid-container">
-                <section class="glass-card form-section">
-                    <h3>Nueva Cita</h3>
+            <div class="dashboard-grid">
+                <section class="glass-card">
+                    <h3>Agendar Cita</h3>
                     <form id="appointmentForm">
-                        <div class="input-group">
-                            <label>Cliente</label>
-                            <input type="text" id="nombre" placeholder="Nombre completo" required>
+                        <input type="text" id="nombre" placeholder="Nombre del Cliente" required>
+                        <input type="datetime-local" id="fecha" required>
+
+                        <label class="label-tiny">SERVICIO:</label>
+                        <div class="service-bubbles">
+                            <div class="bubble" onclick="selectService(this, 'Corte')">✂️ Corte</div>
+                            <div class="bubble" onclick="selectService(this, 'Barba')">🧔 Barba</div>
+                            <div class="bubble" onclick="selectService(this, 'Combo')">🔥 Combo</div>
+                            <div class="bubble" onclick="selectService(this, 'Facial')">🧴 Facial</div>
                         </div>
-                        <div class="input-group">
-                            <label>Fecha y Hora</label>
-                            <input type="datetime-local" id="fecha" required>
-                        </div>
-                        <button type="submit" class="btn-secondary">Confirmar Cita</button>
+
+                        <button type="submit" class="btn-primary">REGISTRAR CITA</button>
                     </form>
                 </section>
 
-                <section class="glass-card list-section">
-                    <h3>Citas Programadas</h3>
-                    <div id="appointmentsList" class="list-wrapper">
-                    </div>
+                <section class="glass-card">
+                    <h3>Próximas Citas</h3>
+                    <div id="appointmentsList" class="scroll-list"></div>
                 </section>
-            </div>
-        </div>
-
-        <div id="tab-servicios" class="tab-content" style="display:none;">
-            <h2>Servicios Ofrecidos</h2>
-            <div class="services-grid">
-                <div class="service-card"><h4>Corte Clásico</h4><p>₡7,000</p></div>
-                <div class="service-card"><h4>Barba Express</h4><p>₡4,500</p></div>
-                <div class="service-card"><h4>Combo VIP</h4><p>₡12,000</p></div>
             </div>
         </div>
     </main>

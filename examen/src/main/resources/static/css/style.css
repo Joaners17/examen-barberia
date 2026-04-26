@@ -1,40 +1,76 @@
 :root {
-    --primary: #d4af37; /* Dorado Barber */
-    --dark: #0f172a;
-    --text: #f8fafc;
-    --glass: rgba(255, 255, 255, 0.05);
+    --gold: #d4af37;
+    --bg-dark: #020617;
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --font: 'Outfit', sans-serif;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font); }
 
-body { background: #020617; color: var(--text); overflow-x: hidden; }
-
-.full-screen { height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #1e293b 0%, #020617 100%); }
+body { background: var(--bg-dark); color: white; min-height: 100vh; overflow-x: hidden; }
 
 .glass-card {
-    background: var(--glass);
-    backdrop-filter: blur(15px);
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 24px;
-    padding: 40px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    padding: 30px;
+    position: relative;
+    overflow: hidden;
 }
 
-/* Sidebar */
-.sidebar { width: 260px; height: 100vh; position: fixed; background: rgba(15, 23, 42, 0.8); border-right: 1px solid var(--glass); padding: 40px 20px; display: flex; flex-direction: column; }
-.avatar { width: 60px; height: 60px; background: var(--primary); color: black; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; margin-bottom: 15px; }
+/* Burbujas Flotantes */
+.service-bubbles { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
 
-.nav-links { list-style: none; margin-top: 50px; flex-grow: 1; }
-.nav-links li { padding: 15px; cursor: pointer; transition: 0.3s; border-radius: 12px; margin-bottom: 10px; }
-.nav-links li:hover, .nav-links li.active { background: var(--glass); color: var(--primary); }
+.bubble {
+    padding: 10px 18px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: 0.4s;
+    animation: float 4s ease-in-out infinite;
+    font-size: 0.9rem;
+}
 
-/* Main Content */
-.content { margin-left: 260px; padding: 60px; }
-.grid-container { display: grid; grid-template-columns: 1fr 1.5fr; gap: 30px; margin-top: 30px; }
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
 
-input { width: 100%; padding: 12px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass); border-radius: 10px; color: white; margin-bottom: 20px; }
+.bubble:nth-child(2) { animation-delay: 0.5s; }
+.bubble:nth-child(3) { animation-delay: 1.2s; }
 
-.btn-primary { background: var(--primary); border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3); }
+.bubble.active {
+    background: var(--gold);
+    color: black;
+    font-weight: bold;
+    animation: none;
+    transform: scale(1.1);
+}
 
-.appointment-item { background: var(--glass); padding: 20px; border-radius: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+/* Inputs y Botones */
+input {
+    width: 100%; padding: 12px; background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+    color: white; margin-bottom: 15px;
+}
+
+.btn-primary {
+    width: 100%; padding: 15px; background: var(--gold);
+    border: none; border-radius: 12px; font-weight: 800;
+    cursor: pointer; transition: 0.3s;
+}
+
+.btn-primary:hover { filter: brightness(1.2); transform: translateY(-3px); }
+
+/* Grid y Layout */
+.dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px; }
+.sidebar { width: 240px; height: 100vh; position: fixed; background: rgba(0,0,0,0.5); padding: 40px 20px; }
+.main-content { margin-left: 240px; padding: 50px; }
+
+.appointment-card {
+    background: rgba(255,255,255,0.02); padding: 20px; border-radius: 15px;
+    margin-bottom: 15px; display: flex; justify-content: space-between;
+    border-left: 4px solid var(--gold);
+}

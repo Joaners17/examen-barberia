@@ -9,19 +9,16 @@ public class Appointment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String clienteNombre;
-    private String clienteEmail;
+    private String servicio;
     private LocalDateTime fechaHora;
-    private int duracionMin;
 
-    // Getters y Setters (O usa @Data si tienes Lombok)
+    // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getClienteNombre() { return clienteNombre; }
     public void setClienteNombre(String clienteNombre) { this.clienteNombre = clienteNombre; }
-    public String getClienteEmail() { return clienteEmail; }
-    public void setClienteEmail(String clienteEmail) { this.clienteEmail = clienteEmail; }
+    public String getServicio() { return servicio; }
+    public void setServicio(String servicio) { this.servicio = servicio; }
     public LocalDateTime getFechaHora() { return fechaHora; }
     public void setFechaHora(LocalDateTime fechaHora) { this.fechaHora = fechaHora; }
-    public int getDuracionMin() { return duracionMin; }
-    public void setDuracionMin(int duracionMin) { this.duracionMin = duracionMin; }
 }
