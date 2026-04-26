@@ -1,76 +1,57 @@
 :root {
-    --gold: #d4af37;
-    --bg-dark: #020617;
-    --card-bg: rgba(255, 255, 255, 0.03);
-    --font: 'Outfit', sans-serif;
+    --accent: #e2b857;
+    --bg: #05070a;
+    --surface: rgba(255, 255, 255, 0.03);
+    --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font); }
-
-body { background: var(--bg-dark); color: white; min-height: 100vh; overflow-x: hidden; }
-
-.glass-card {
-    background: var(--card-bg);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 24px;
-    padding: 30px;
-    position: relative;
-    overflow: hidden;
+body {
+    background-color: var(--bg);
+    color: #fff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-image: radial-gradient(circle at 50% 50%, #111827 0%, #05070a 100%);
 }
 
-/* Burbujas Flotantes */
-.service-bubbles { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
+/* Efectos de Vidrio (Glassmorphism) */
+.glass-container {
+    background: var(--surface);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 28px;
+    padding: 35px;
+}
 
-.bubble {
-    padding: 10px 18px;
+/* Burbujas Flotantes Dinámicas */
+.bubble-container { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
+
+.b-option {
+    padding: 12px 22px;
     background: rgba(255,255,255,0.05);
-    border-radius: 50px;
+    border-radius: 100px;
     cursor: pointer;
+    transition: var(--transition);
     border: 1px solid transparent;
-    transition: 0.4s;
-    animation: float 4s ease-in-out infinite;
-    font-size: 0.9rem;
+    animation: floating 5s ease-in-out infinite;
 }
 
-@keyframes float {
+@keyframes floating {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
+    50% { transform: translateY(-10px); }
 }
 
-.bubble:nth-child(2) { animation-delay: 0.5s; }
-.bubble:nth-child(3) { animation-delay: 1.2s; }
+.b-option:hover { background: rgba(226, 184, 87, 0.15); border-color: var(--accent); }
+.b-option.active { background: var(--accent); color: #000; font-weight: 700; transform: scale(1.1); animation: none; }
 
-.bubble.active {
-    background: var(--gold);
-    color: black;
-    font-weight: bold;
-    animation: none;
-    transform: scale(1.1);
+/* Dashboard Layout */
+.dashboard-layout { display: flex; height: 100vh; }
+.nav-sidebar { width: 300px; background: rgba(0,0,0,0.4); padding: 50px 30px; border-right: 1px solid var(--surface); }
+.main-view { flex-grow: 1; padding: 60px; overflow-y: auto; }
+
+/* Botones Modernos */
+.btn-shine {
+    background: linear-gradient(45deg, var(--accent), #f3d48d);
+    color: #000; border: none; padding: 18px; border-radius: 15px;
+    font-weight: 800; letter-spacing: 1px; cursor: pointer; transition: var(--transition);
 }
 
-/* Inputs y Botones */
-input {
-    width: 100%; padding: 12px; background: rgba(0,0,0,0.4);
-    border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
-    color: white; margin-bottom: 15px;
-}
-
-.btn-primary {
-    width: 100%; padding: 15px; background: var(--gold);
-    border: none; border-radius: 12px; font-weight: 800;
-    cursor: pointer; transition: 0.3s;
-}
-
-.btn-primary:hover { filter: brightness(1.2); transform: translateY(-3px); }
-
-/* Grid y Layout */
-.dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px; }
-.sidebar { width: 240px; height: 100vh; position: fixed; background: rgba(0,0,0,0.5); padding: 40px 20px; }
-.main-content { margin-left: 240px; padding: 50px; }
-
-.appointment-card {
-    background: rgba(255,255,255,0.02); padding: 20px; border-radius: 15px;
-    margin-bottom: 15px; display: flex; justify-content: space-between;
-    border-left: 4px solid var(--gold);
-}
+.btn-shine:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(226, 184, 87, 0.4); }

@@ -3,63 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barber Pro Max | Engineering Edition</title>
+    <title>Barber Management System | Enterprise</title>
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<div id="loginSection" class="auth-screen">
-    <div class="glass-card login-box">
-        <div class="shimmer"></div>
-        <h1>Barber<span>Admin</span></h1>
+<div id="loginSection" class="auth-wrapper">
+    <div class="glass-container login-card">
+        <div class="brand-header">
+            <div class="icon-box">✂️</div>
+            <h1>Zenith<span>Barber</span></h1>
+        </div>
         <form id="loginForm">
-            <input type="text" id="user" placeholder="Usuario" required>
-            <input type="password" id="pass" placeholder="Contraseña" required>
-            <button type="submit" class="btn-glow">ACCEDER</button>
+            <div class="input-field">
+                <input type="text" id="user" placeholder=" " required>
+                <label>Nombre de Usuario</label>
+            </div>
+            <div class="input-field">
+                <input type="password" id="pass" placeholder=" " required>
+                <label>Contraseña</label>
+            </div>
+            <button type="submit" class="btn-shine">INICIAR SESIÓN</button>
         </form>
     </div>
 </div>
 
-<div id="dashboardSection" style="display: none;">
-    <aside class="sidebar">
-        <div class="brand-logo">💈 PRO</div>
-        <nav>
-            <div class="nav-item active" onclick="showTab('agenda')">📅 Agenda</div>
-            <div class="nav-item" onclick="showTab('servicios')">✂️ Servicios</div>
+<div id="dashboardSection" class="dashboard-layout" style="display: none;">
+    <aside class="nav-sidebar">
+        <div class="user-profile">
+            <div class="user-avatar" id="avatarLetter">J</div>
+            <h3 id="userName">Joan Eras</h3>
+            <p>System Administrator</p>
+        </div>
+        <nav class="menu-items">
+            <div class="item active" onclick="switchTab('agenda')">📅 Gestión de Citas</div>
+            <div class="item" onclick="switchTab('usuarios')">👥 Usuarios</div>
+            <div class="item" onclick="switchTab('stats')">📊 Estadísticas</div>
         </nav>
-        <button onclick="logout()" class="btn-exit">Salir</button>
+        <button onclick="logout()" class="btn-logout">Cerrar Sesión</button>
     </aside>
 
-    <main class="main-content">
-        <div id="tab-agenda" class="tab-content">
-            <div class="header-main">
-                <h2>Panel de Control</h2>
-                <p>Sincronización en tiempo real activa</p>
+    <main class="main-view">
+        <div id="tab-agenda" class="tab-pane">
+            <div class="view-header">
+                <h2>Agenda Inteligente</h2>
+                <div class="date-badge" id="currentDate"></div>
             </div>
 
-            <div class="dashboard-grid">
-                <section class="glass-card">
-                    <h3>Agendar Cita</h3>
+            <div class="dual-grid">
+                <section class="glass-container">
+                    <h3>Reservar Nueva Cita</h3>
                     <form id="appointmentForm">
-                        <input type="text" id="nombre" placeholder="Nombre del Cliente" required>
-                        <input type="datetime-local" id="fecha" required>
+                        <input type="text" id="nombre" placeholder="Nombre del Cliente" class="modern-input" required>
+                        <input type="datetime-local" id="fecha" class="modern-input" required>
 
-                        <label class="label-tiny">SERVICIO:</label>
-                        <div class="service-bubbles">
-                            <div class="bubble" onclick="selectService(this, 'Corte')">✂️ Corte</div>
-                            <div class="bubble" onclick="selectService(this, 'Barba')">🧔 Barba</div>
-                            <div class="bubble" onclick="selectService(this, 'Combo')">🔥 Combo</div>
-                            <div class="bubble" onclick="selectService(this, 'Facial')">🧴 Facial</div>
+                        <p class="section-label">SERVICIO REQUERIDO</p>
+                        <div class="bubble-container">
+                            <div class="b-option" onclick="setSvc(this, 'Corte')">Corte</div>
+                            <div class="b-option" onclick="setSvc(this, 'Barba')">Barba</div>
+                            <div class="b-option" onclick="setSvc(this, 'Combo')">Combo</div>
+                            <div class="b-option" onclick="setSvc(this, 'Facial')">Facial</div>
                         </div>
-
-                        <button type="submit" class="btn-primary">REGISTRAR CITA</button>
+                        <button type="submit" class="btn-main-action">CONFIRMAR REGISTRO</button>
                     </form>
                 </section>
 
-                <section class="glass-card">
-                    <h3>Próximas Citas</h3>
-                    <div id="appointmentsList" class="scroll-list"></div>
+                <section class="glass-container">
+                    <h3>Citas del Día</h3>
+                    <div id="appointmentsList" class="appointment-feed"></div>
                 </section>
             </div>
         </div>
