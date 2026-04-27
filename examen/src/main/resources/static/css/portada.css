@@ -1,0 +1,15 @@
+#curtain-loader {
+    position: fixed;
+    inset: 0; /* Cubre toda la pantalla */
+    z-index: 99999; /* Por encima de todo */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    background: transparent; /* Para ver los paneles */
+}
+
+/* El resto de tu código de portada.css se mantiene igual... */
+.loader-none {
+    display: none !important;
+}
