@@ -13,7 +13,6 @@ public class AppointmentService {
 
     private final AppointmentRepository repository;
 
-    // Métodos de pago permitidos
     private static final Set<String> METODOS_PAGO = Set.of("Efectivo", "Tarjeta", "Sinpe Móvil");
 
     public AppointmentService(AppointmentRepository repository) {
@@ -31,9 +30,14 @@ public class AppointmentService {
         if (cita.getTelefono() == null || cita.getTelefono().isBlank())
             throw new IllegalArgumentException("El teléfono del cliente es obligatorio.");
 
-        // ✅ Validar formato de teléfono (8 dígitos)
         if (!cita.getTelefono().matches("\\d{8}"))
             throw new IllegalArgumentException("El teléfono debe tener 8 dígitos.");
+
+        if (cita.getCedula() == null || cita.getCedula().isBlank())
+            throw new IllegalArgumentException("La cédula es obligatoria.");
+
+        if (!cita.getCedula().matches("\\d{9}"))
+            throw new IllegalArgumentException("La cédula debe tener 9 dígitos.");
 
         if (cita.getServicio() == null || cita.getServicio().isBlank())
             throw new IllegalArgumentException("El servicio es obligatorio.");

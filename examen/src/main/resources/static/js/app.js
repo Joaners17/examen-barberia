@@ -35,9 +35,9 @@ function showToast(msg, type = 'success', duration = 3500) {
 // ============================================================
 // NAVEGACIÓN
 // ============================================================
-function showTab(tabId) {
+function showTab(tabId, el) {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+    el.classList.add('active');
     document.querySelectorAll('.tab-pane').forEach(t => t.classList.remove('active'));
     document.getElementById('tab-' + tabId).classList.add('active');
     if (tabId === 'servicios') renderServicios();
@@ -129,6 +129,12 @@ document.getElementById('appointmentForm').addEventListener('submit', async (e) 
         return;
     }
 
+    const cedula = document.getElementById('cedula').value.trim();
+    if (!/^\d{9}$/.test(cedula)) {
+        showToast('La cédula debe tener exactamente 9 dígitos.', 'error');
+        return;
+    }
+
     const fechaVal = document.getElementById('fecha').value;
     if (new Date(fechaVal) < new Date()) {
         showToast('No puedes agendar una cita en el pasado.', 'error');
@@ -138,6 +144,7 @@ document.getElementById('appointmentForm').addEventListener('submit', async (e) 
     const data = {
         clienteNombre: document.getElementById('nombre').value.trim(),
         telefono,
+        cedula,
         fechaHora:   fechaVal,
         servicio:    selectedSvc,
         metodoPago:  selectedPago,
@@ -209,12 +216,17 @@ async function render() {
             tel.style.display = 'block';
             tel.textContent = `📞 ${c.telefono}`;
 
+            const ced = document.createElement('small');
+            ced.style.display = 'block';
+            ced.textContent = `🪪 ${c.cedula}`;
+
             const fecha = document.createElement('small');
             fecha.textContent = new Date(c.fechaHora).toLocaleString('es-CR');
 
             info.appendChild(svcLabel);
             info.appendChild(nombre);
             info.appendChild(tel);
+            info.appendChild(ced);
             info.appendChild(fecha);
 
             const delBtn = document.createElement('button');
@@ -227,6 +239,11 @@ async function render() {
             card.appendChild(delBtn);
             list.appendChild(card);
         });
+
+        // Reaplicar filtro si hay texto en el buscador
+        const query = document.getElementById('searchCedula').value;
+        if (query) filtrarCitas(query);
+
     } catch (err) {
         showToast('No se pudo conectar con el servidor.', 'error');
     }
@@ -252,6 +269,18 @@ async function del(id, cardEl) {
     } catch (err) {
         showToast('Error de conexión.', 'error');
     }
+}
+
+// ============================================================
+// FILTRAR CITAS POR CÉDULA
+// ============================================================
+function filtrarCitas(query) {
+    const cards = document.querySelectorAll('.appt-card');
+    const q = query.trim();
+    cards.forEach(card => {
+        const texto = card.innerText;
+        card.style.display = (!q || texto.includes(q)) ? '' : 'none';
+    });
 }
 
 // ============================================================

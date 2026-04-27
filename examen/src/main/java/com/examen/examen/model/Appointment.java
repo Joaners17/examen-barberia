@@ -12,9 +12,10 @@ public class Appointment {
     private Long id;
 
     private String clienteNombre;
-    private String telefono;        // ✅ NUEVO
+    private String telefono;
+    private String cedula;
     private String servicio;
-    private String metodoPago;      // ✅ NUEVO: Efectivo | Tarjeta | Sinpe Móvil
+    private String metodoPago;
     private LocalDateTime fechaHora;
     private int duracionMin;
 
@@ -26,6 +27,9 @@ public class Appointment {
 
     public String getTelefono() { return telefono; }
     public void setTelefono(String telefono) { this.telefono = telefono; }
+
+    public String getCedula() { return cedula; }
+    public void setCedula(String cedula) { this.cedula = cedula; }
 
     public String getServicio() { return servicio; }
     public void setServicio(String servicio) { this.servicio = servicio; }
