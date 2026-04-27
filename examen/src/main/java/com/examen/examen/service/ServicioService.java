@@ -24,6 +24,7 @@ public class ServicioService {
             repository.save(crearServicio("Degradado Pro", 9000, 45));
             repository.save(crearServicio("Barba King",    5000, 20));
             repository.save(crearServicio("Combo",         12000, 60));
+            repository.save(crearServicio("Corte femenino",15000, 60));
         }
     }
 
