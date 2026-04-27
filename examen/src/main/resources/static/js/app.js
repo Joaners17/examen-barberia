@@ -396,3 +396,16 @@ function updateClock() {
 }
 updateClock();
 setInterval(updateClock, 1000);
+window.addEventListener('load', () => {
+    const loader = document.getElementById('curtain-loader');
+
+    // Tiempo para que el usuario vea el nombre (1.5 segundos)
+    setTimeout(() => {
+        loader.classList.add('loader-finished');
+
+        // Eliminamos el elemento por completo después de que termine la transición CSS
+        setTimeout(() => {
+            loader.classList.add('loader-none');
+        }, 1200); // Este tiempo debe coincidir con el del CSS (1.2s)
+    }, 1500);
+});
