@@ -3,47 +3,41 @@ package com.Examen.examen.service;
 import com.Examen.examen.model.Appointment;
 import com.Examen.examen.repository.AppointmentRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 @Service
 public class AppointmentService {
 
     private final AppointmentRepository repository;
 
-    private static final Set<String> METODOS_PAGO = Set.of("Efectivo", "Tarjeta", "Sinpe Móvil");
-
     public AppointmentService(AppointmentRepository repository) {
         this.repository = repository;
     }
 
-    public List<Appointment> listarTodas() {
+    // Lista todas las citas; filtra por email si se proporciona
+    public List<Appointment> listarTodas(String clienteEmail) {
+        if (clienteEmail != null && !clienteEmail.isBlank()) {
+            return repository.findByClienteEmail(clienteEmail);
+        }
         return repository.findAll();
     }
 
+    // @Transactional para reducir condiciones de carrera
+    @Transactional
     public Appointment guardar(Appointment cita) {
+
+        // ── Validaciones ─────────────────────────────────────────────────────
         if (cita.getClienteNombre() == null || cita.getClienteNombre().isBlank())
             throw new IllegalArgumentException("El nombre del cliente es obligatorio.");
 
-        if (cita.getTelefono() == null || cita.getTelefono().isBlank())
-            throw new IllegalArgumentException("El teléfono del cliente es obligatorio.");
+        if (cita.getClienteEmail() == null || cita.getClienteEmail().isBlank())
+            throw new IllegalArgumentException("El email del cliente es obligatorio.");
 
-        if (!cita.getTelefono().matches("\\d{8}"))
-            throw new IllegalArgumentException("El teléfono debe tener 8 dígitos.");
-
-        if (cita.getCedula() == null || cita.getCedula().isBlank())
-            throw new IllegalArgumentException("La cédula es obligatoria.");
-
-        if (!cita.getCedula().matches("\\d{9}"))
-            throw new IllegalArgumentException("La cédula debe tener 9 dígitos.");
-
-        if (cita.getServicio() == null || cita.getServicio().isBlank())
-            throw new IllegalArgumentException("El servicio es obligatorio.");
-
-        if (cita.getMetodoPago() == null || !METODOS_PAGO.contains(cita.getMetodoPago()))
-            throw new IllegalArgumentException("Método de pago inválido. Use: Efectivo, Tarjeta o Sinpe Móvil.");
+        if (!cita.getClienteEmail().matches("^[\\w.+-]+@[\\w-]+\\.[\\w.]+$"))
+            throw new IllegalArgumentException("El email no tiene un formato válido.");
 
         if (cita.getFechaHora() == null)
             throw new IllegalArgumentException("La fecha y hora son obligatorias.");
@@ -51,15 +45,67 @@ public class AppointmentService {
         if (cita.getFechaHora().isBefore(LocalDateTime.now()))
             throw new IllegalArgumentException("No se puede agendar una cita en el pasado.");
 
-        if (cita.getDuracionMin() <= 0)
-            throw new IllegalArgumentException("La duración debe ser mayor a 0 minutos.");
+        // duracionMin: default 30 si no se envía
+        if (cita.getDuracionMin() <= 0) {
+            cita.setDuracionMin(30);
+        }
 
+        // ── Detección de solapamiento ─────────────────────────────────────────
+        // Intervalo nuevo: [nuevoInicio, nuevoFin)
+        LocalDateTime nuevoInicio = cita.getFechaHora();
+        LocalDateTime nuevoFin    = nuevoInicio.plusMinutes(cita.getDuracionMin());
+
+        // Traemos candidatas: citas RESERVADAS cuyo inicio < nuevoFin
+        List<Appointment> candidatas = repository.findReservadasAntesDeNuevoFin(nuevoFin);
+
+        // Filtramos en Java: solapamiento si finExistente > nuevoInicio
+        // finExistente = fechaHora + duracionMin  (calculado en Java, sin FUNCTION())
+        boolean haySolapamiento = candidatas.stream().anyMatch(existente -> {
+            LocalDateTime finExistente = existente.getFechaHora()
+                    .plusMinutes(existente.getDuracionMin());
+            return finExistente.isAfter(nuevoInicio);
+        });
+
+        if (haySolapamiento) {
+            Appointment conflicto = candidatas.stream().filter(existente -> {
+                LocalDateTime finExistente = existente.getFechaHora()
+                        .plusMinutes(existente.getDuracionMin());
+                return finExistente.isAfter(nuevoInicio);
+            }).findFirst().get();
+
+            throw new ConflictException(
+                    "Conflicto de horario: ya existe una cita de "
+                            + conflicto.getFechaHora()
+                            + " a "
+                            + conflicto.getFechaHora().plusMinutes(conflicto.getDuracionMin())
+                            + ". Por favor elija otro horario."
+            );
+        }
+
+        // estado y creadoEn se asignan en @PrePersist de Appointment
         return repository.save(cita);
     }
 
-    public void eliminar(Long id) {
-        if (!repository.existsById(id))
-            throw new IllegalArgumentException("No existe una cita con ID: " + id);
-        repository.deleteById(id);
+    // Cancela la cita (marca estado = CANCELADA, NO borra el registro)
+    @Transactional
+    public void cancelar(Long id) {
+        Appointment cita = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe una cita con ID: " + id));
+
+        if (cita.getEstado() == Appointment.Estado.CANCELADA)
+            throw new IllegalArgumentException("La cita ya está cancelada.");
+
+        cita.setEstado(Appointment.Estado.CANCELADA);
+        repository.save(cita);
+    }
+
+    // ── Excepciones ──────────────────────────────────────────────────────────
+
+    public static class ConflictException extends RuntimeException {
+        public ConflictException(String msg) { super(msg); }
+    }
+
+    public static class ResourceNotFoundException extends RuntimeException {
+        public ResourceNotFoundException(String msg) { super(msg); }
     }
 }

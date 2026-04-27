@@ -1,5 +1,5 @@
 // ============================================================
-// ZENITH BARBER CLOUD — app.js
+// ZENITH BARBER CLOUD — app.js  (VERSIÓN CORREGIDA)
 // ============================================================
 
 const USERS = {
@@ -43,8 +43,8 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
 
     if (USERS[u] && USERS[u].pass === p) {
         document.getElementById('displayUserName').innerText = USERS[u].name;
-        document.getElementById('avatarIcon').innerText     = USERS[u].avatar;
-        document.getElementById('loginSection').style.display    = 'none';
+        document.getElementById('avatarIcon').innerText      = USERS[u].avatar;
+        document.getElementById('loginSection').style.display     = 'none';
         document.getElementById('dashboardSection').style.display = 'flex';
         showToast(`Bienvenido, ${USERS[u].name}`);
         inicializarDashboard();
@@ -54,12 +54,12 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
 });
 
 // ============================================================
-// LOGOUT const container = document.querySelector('#appointmentForm .bubbles');
+// LOGOUT
 // ============================================================
 function logout() {
     if (!confirm('¿Desea cerrar la sesión?')) return;
     document.getElementById('dashboardSection').style.display = 'none';
-    document.getElementById('loginSection').style.display    = 'flex';
+    document.getElementById('loginSection').style.display     = 'flex';
     document.getElementById('loginForm').reset();
     showToast('Sesión cerrada correctamente.');
 }
@@ -82,7 +82,6 @@ function showTab(tabId, el) {
 // BURBUJAS DE SERVICIOS
 // ============================================================
 async function cargarBubblesServicios() {
-    // ✅ Usa querySelector('.bubbles') igual que el HTML
     const container = document.getElementById('bubblesServicios');
     if (!container) return;
 
@@ -134,40 +133,35 @@ document.getElementById('duracion').addEventListener('input', function () {
 });
 
 // ============================================================
-// CREAR CITA
+// CREAR CITA — con campo email y manejo de 409 Conflict
 // ============================================================
 document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    if (!selectedSvc)  { showToast('Selecciona un servicio.', 'error'); return; }
-    if (!selectedPago) { showToast('Selecciona un método de pago.', 'error'); return; }
+    // ✅ Validaciones en frontend
+    const email = document.getElementById('email').value.trim();
+    if (!email) { showToast('El email es obligatorio.', 'error'); return; }
 
-    const telefono = document.getElementById('telefono').value.trim();
-    if (!/^\d{8}$/.test(telefono)) {
-        showToast('El teléfono debe tener exactamente 8 dígitos.', 'error');
-        return;
-    }
-
-    const cedula = document.getElementById('cedula').value.trim();
-    if (!/^\d{9}$/.test(cedula)) {
-        showToast('La cédula debe tener exactamente 9 dígitos.', 'error');
+    const emailRegex = /^[\w.+-]+@[\w-]+\.[\w.]+$/;
+    if (!emailRegex.test(email)) {
+        showToast('El email no tiene un formato válido.', 'error');
         return;
     }
 
     const fechaVal = document.getElementById('fecha').value;
-    if (new Date(fechaVal) < new Date()) {
+    if (!fechaVal) { showToast('La fecha y hora son obligatorias.', 'error'); return; }
+    if (new Date(fechaVal) <= new Date()) {
         showToast('No puedes agendar una cita en el pasado.', 'error');
         return;
     }
 
+    // ✅ Body con los campos del enunciado
     const data = {
-        clienteNombre: document.getElementById('nombre').value.trim(),
-        telefono,
-        cedula,
-        fechaHora:   fechaVal,
-        servicio:    selectedSvc,
-        metodoPago:  selectedPago,
-        duracionMin: parseInt(document.getElementById('duracion').value, 10)
+        clienteNombre:    document.getElementById('nombre').value.trim(),
+        clienteEmail:     email,
+        clienteTelefono:  document.getElementById('telefono').value.trim() || null,
+        fechaHora:        fechaVal,
+        duracionMin:      parseInt(document.getElementById('duracion').value, 10)
     };
 
     const btn = e.target.querySelector('button[type="submit"]');
@@ -181,14 +175,20 @@ document.getElementById('appointmentForm').addEventListener('submit', async (e) 
             body: JSON.stringify(data)
         });
 
-        if (res.ok) {
+        if (res.status === 201) {
             e.target.reset();
             resetSelecciones();
             showToast('✅ Cita confirmada correctamente.');
             renderAppointments();
+
+        } else if (res.status === 409) {
+            // ✅ Manejo especial del conflicto de solapamiento
+            const body = await res.json();
+            showToast('⚠️ ' + (body.error || 'Conflicto de horario.'), 'error', 6000);
+
         } else {
-            const errText = await res.text();
-            showToast(errText || 'Error al guardar la cita.', 'error');
+            const body = await res.json().catch(() => ({}));
+            showToast(body.error || 'Error al guardar la cita.', 'error');
         }
     } catch (err) {
         showToast('Error de conexión.', 'error');
@@ -201,12 +201,17 @@ document.getElementById('appointmentForm').addEventListener('submit', async (e) 
 // ============================================================
 // RENDERIZAR CITAS
 // ============================================================
-async function renderAppointments() {
+async function renderAppointments(emailFiltro = '') {
     const list = document.getElementById('appointmentsList');
     if (!list) return;
 
     try {
-        const res = await fetch('/api/appointments');
+        // ✅ Filtro por email via query param
+        const url = emailFiltro
+            ? `/api/appointments?clienteEmail=${encodeURIComponent(emailFiltro)}`
+            : '/api/appointments';
+
+        const res = await fetch(url);
         if (!res.ok) { showToast('Error al cargar las citas.', 'error'); return; }
         currentCitas = await res.json();
 
@@ -222,45 +227,63 @@ async function renderAppointments() {
             const card = document.createElement('div');
             card.className = 'appt-card';
 
-            const info = document.createElement('div');
+            // ✅ Badge de estado (RESERVADA / CANCELADA)
+            const estadoBadge = document.createElement('div');
+            estadoBadge.style.cssText = `
+                display: inline-block;
+                padding: 2px 10px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: 700;
+                margin-bottom: 6px;
+                background: ${c.estado === 'RESERVADA' ? 'rgba(0,200,100,0.2)' : 'rgba(255,80,80,0.2)'};
+                color:       ${c.estado === 'RESERVADA' ? '#00e676' : '#ff5252'};
+            `;
+            estadoBadge.textContent = c.estado;
 
-            const svcLabel = document.createElement('div');
-            svcLabel.className = 'svc-label';
-            svcLabel.textContent = `${c.servicio} · ${c.duracionMin} min · ${c.metodoPago}`;
+            const info = document.createElement('div');
 
             const nombre = document.createElement('h4');
             nombre.textContent = c.clienteNombre;
 
+            const emailEl = document.createElement('small');
+            emailEl.style.display = 'block';
+            emailEl.textContent = `📧 ${c.clienteEmail}`;
+
             const tel = document.createElement('small');
             tel.style.display = 'block';
-            tel.textContent = `📞 ${c.telefono}`;
-
-            const ced = document.createElement('small');
-            ced.style.display = 'block';
-            ced.textContent = `🪪 ${c.cedula}`;
+            tel.textContent = c.clienteTelefono ? `📞 ${c.clienteTelefono}` : '';
 
             const fecha = document.createElement('small');
-            fecha.textContent = new Date(c.fechaHora).toLocaleString('es-CR');
+            fecha.style.display = 'block';
+            fecha.textContent = `🗓 ${new Date(c.fechaHora).toLocaleString('es-CR')} · ${c.duracionMin} min`;
 
-            info.appendChild(svcLabel);
+            const creado = document.createElement('small');
+            creado.style.display = 'block';
+            creado.style.opacity = '0.5';
+            creado.textContent = `Creada: ${new Date(c.creadoEn).toLocaleString('es-CR')}`;
+
+            info.appendChild(estadoBadge);
             info.appendChild(nombre);
-            info.appendChild(tel);
-            info.appendChild(ced);
+            info.appendChild(emailEl);
+            if (c.clienteTelefono) info.appendChild(tel);
             info.appendChild(fecha);
-
-            const delBtn = document.createElement('button');
-            delBtn.className = 'btn-delete';
-            delBtn.textContent = '✕';
-            delBtn.title = 'Eliminar cita';
-            delBtn.addEventListener('click', () => eliminarCita(c.id, card));
+            info.appendChild(creado);
 
             card.appendChild(info);
-            card.appendChild(delBtn);
+
+            // ✅ Solo mostrar botón cancelar si la cita está RESERVADA
+            if (c.estado === 'RESERVADA') {
+                const delBtn = document.createElement('button');
+                delBtn.className = 'btn-delete';
+                delBtn.textContent = '✕ Cancelar';
+                delBtn.title = 'Cancelar cita';
+                delBtn.addEventListener('click', () => cancelarCita(c.id, card));
+                card.appendChild(delBtn);
+            }
+
             list.appendChild(card);
         });
-
-        const query = document.getElementById('searchCedula')?.value;
-        if (query) filtrarCitas(query);
 
     } catch (err) {
         showToast('No se pudo conectar con el servidor.', 'error');
@@ -268,35 +291,36 @@ async function renderAppointments() {
 }
 
 // ============================================================
-// ELIMINAR CITA
+// FILTRAR POR EMAIL (llama al backend con ?clienteEmail=)
 // ============================================================
-async function eliminarCita(id, cardEl) {
-    if (!confirm('¿Eliminar esta cita?')) return;
+function filtrarPorEmail() {
+    const email = document.getElementById('searchEmail').value.trim();
+    renderAppointments(email);
+}
+
+// ============================================================
+// CANCELAR CITA (DELETE → marca como CANCELADA)
+// ============================================================
+async function cancelarCita(id, cardEl) {
+    if (!confirm('¿Cancelar esta cita?')) return;
     try {
         const res = await fetch(`/api/appointments/${id}`, { method: 'DELETE' });
         if (res.ok) {
+            showToast('Cita cancelada.');
             if (cardEl) {
                 cardEl.style.opacity = '0';
                 cardEl.style.transition = 'opacity 0.3s ease';
                 setTimeout(() => renderAppointments(), 300);
-            } else renderAppointments();
-            showToast('Cita eliminada.');
+            } else {
+                renderAppointments();
+            }
         } else {
-            showToast('No se pudo eliminar la cita.', 'error');
+            const body = await res.json().catch(() => ({}));
+            showToast(body.error || 'No se pudo cancelar la cita.', 'error');
         }
     } catch (err) {
         showToast('Error de conexión.', 'error');
     }
-}
-
-// ============================================================
-// FILTRAR POR CÉDULA
-// ============================================================
-function filtrarCitas(query) {
-    const q = query.toLowerCase().trim();
-    document.querySelectorAll('.appt-card').forEach(card => {
-        card.style.display = card.innerText.toLowerCase().includes(q) ? '' : 'none';
-    });
 }
 
 // ============================================================
@@ -305,7 +329,6 @@ function filtrarCitas(query) {
 async function renderServicios() {
     const grid = document.getElementById('serviciosGrid');
     if (!grid) return;
-
     try {
         const res = await fetch('/api/servicios');
         if (!res.ok) return;
@@ -324,12 +347,12 @@ async function renderServicios() {
 
             const dur = document.createElement('small');
             dur.textContent = `${s.duracionMin} min`;
-            dur.style.color = 'rgba(255,255,255,0.5)';
+            dur.style.color   = 'rgba(255,255,255,0.5)';
             dur.style.display = 'block';
             dur.style.marginBottom = '12px';
 
             const btn = document.createElement('button');
-            btn.className = 'btn-delete';
+            btn.className   = 'btn-delete';
             btn.style.width = '100%';
             btn.textContent = 'Eliminar';
             btn.addEventListener('click', () => eliminarServicio(s.id));
@@ -398,8 +421,13 @@ async function eliminarServicio(id) {
 // ESTADÍSTICAS
 // ============================================================
 function actualizarEstadisticas() {
-    const totalEl = document.getElementById('totalCount');
-    if (totalEl) totalEl.innerText = currentCitas.length;
+    const totalEl      = document.getElementById('totalCount');
+    const reservadasEl = document.getElementById('reservadasCount');
+    const canceladasEl = document.getElementById('canceladasCount');
+
+    if (totalEl)      totalEl.innerText      = currentCitas.length;
+    if (reservadasEl) reservadasEl.innerText = currentCitas.filter(c => c.estado === 'RESERVADA').length;
+    if (canceladasEl) canceladasEl.innerText = currentCitas.filter(c => c.estado === 'CANCELADA').length;
 }
 
 // ============================================================
