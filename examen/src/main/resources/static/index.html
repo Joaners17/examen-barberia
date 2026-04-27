@@ -12,7 +12,6 @@
 <div id="curtain-loader">
     <div class="curtain-panel left-panel"></div>
     <div class="curtain-panel right-panel"></div>
-
     <div class="curtain-content">
         <div class="logo-wrapper">
             <h1 class="barber-name">ZENITH</h1>
@@ -22,8 +21,6 @@
     </div>
 </div>
 
-<main>
-    <h1 style="display: none;">Bienvenido a la Barbería</h1> </main>
 <section id="loginSection" class="auth-wrapper">
     <div class="glass-card login-box">
         <div class="logo-area">
@@ -62,52 +59,37 @@
     </aside>
 
     <main class="content-area">
-
         <div id="tab-agenda" class="tab-pane active">
             <header class="view-header">
                 <h2>Gestión de Citas</h2>
                 <p id="liveClock"></p>
             </header>
-
             <div class="split-view">
                 <div class="glass-card">
                     <h3>Nueva Reservación</h3>
                     <form id="appointmentForm">
                         <input type="text" id="nombre" placeholder="Nombre del Cliente" class="m-input" required>
-
-                        <input type="tel" id="telefono" placeholder="Teléfono (8 dígitos)" class="m-input"
-                               maxlength="8" pattern="\d{8}" required>
-
-                        <input type="text" id="cedula" placeholder="Cédula (9 dígitos)" class="m-input"
-                               maxlength="9" pattern="\d{9}" required>
-
+                        <input type="tel" id="telefono" placeholder="Teléfono (8 dígitos)" class="m-input" maxlength="8" pattern="\d{8}" required>
+                        <input type="text" id="cedula" placeholder="Cédula (9 dígitos)" class="m-input" maxlength="9" pattern="\d{9}" required>
                         <input type="datetime-local" id="fecha" class="m-input" required>
-
                         <div class="duration-control">
                             <label>Duración: <span id="durValue">30</span> min</label>
                             <input type="range" id="duracion" min="15" max="120" step="15" value="30">
                         </div>
-
                         <p class="label-s">SERVICIO</p>
-                        <div class="bubbles"></div>
-
+                        <div class="bubbles" id="bubblesServicios"></div>
                         <p class="label-s">MÉTODO DE PAGO</p>
                         <div class="bubbles">
                             <div class="pago-opt b-opt" onclick="setPago(this, 'Efectivo')">💵 Efectivo</div>
                             <div class="pago-opt b-opt" onclick="setPago(this, 'Tarjeta')">💳 Tarjeta</div>
                             <div class="pago-opt b-opt" onclick="setPago(this, 'Sinpe Móvil')">📱 Sinpe</div>
                         </div>
-
                         <button type="submit" class="btn-action">CONFIRMAR</button>
                     </form>
                 </div>
-
                 <div class="glass-card">
                     <h3>Citas en Proceso</h3>
-                    <input type="text" id="searchCedula" class="m-input"
-                           placeholder="🔍 Buscar por cédula..."
-                           oninput="filtrarCitas(this.value)"
-                           style="margin-bottom: 14px;">
+                    <input type="text" id="searchCedula" class="m-input" placeholder="🔍 Buscar por cédula..." oninput="filtrarCitas(this.value)">
                     <div id="appointmentsList" class="scroll-v"></div>
                 </div>
             </div>
@@ -117,17 +99,15 @@
             <header class="view-header">
                 <h2>Servicios Disponibles</h2>
             </header>
-
             <div class="glass-card" style="padding: 24px; margin-bottom: 24px;">
                 <h3>Agregar Nuevo Servicio</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; margin-top: 16px; align-items: end;">
-                    <input type="text"   id="svcNombre"   placeholder="Nombre"         class="m-input" style="margin:0">
-                    <input type="number" id="svcPrecio"   placeholder="Precio (₡)"     class="m-input" style="margin:0" min="1">
+                    <input type="text" id="svcNombre" placeholder="Nombre" class="m-input" style="margin:0">
+                    <input type="number" id="svcPrecio" placeholder="Precio (₡)" class="m-input" style="margin:0" min="1">
                     <input type="number" id="svcDuracion" placeholder="Duración (min)" class="m-input" style="margin:0" min="5">
                     <button class="btn-action" style="padding: 14px 20px;" onclick="agregarServicio()">+ Agregar</button>
                 </div>
             </div>
-
             <div class="services-grid" id="serviciosGrid"></div>
         </div>
 
@@ -140,7 +120,6 @@
                 </div>
             </div>
         </div>
-
     </main>
 </section>
 
