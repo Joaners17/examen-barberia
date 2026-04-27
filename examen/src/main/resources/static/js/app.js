@@ -1,43 +1,6 @@
 // ============================================================
-// ZENITH BARBER CLOUD — app.js (FULL EXTENDED VERSION)
+// ZENITH BARBER CLOUD — app.js
 // ============================================================
-
-// js/app.js
-
-// 1. Vincular el botón "Refrescar" del Dashboard
-function refrescarPantalla() {
-    // Cerramos la cortina
-    window.cerrarCortina();
-
-    // Esperamos a que se cierre para simular la carga y volver a abrirla
-    setTimeout(() => {
-        // Aquí podrías recargar datos de la API si quieres
-        console.log("Sistema Refrescado");
-
-        window.abrirCortina();
-    }, 1000);
-}
-
-// 2. Vincular el Logout
-function logout() {
-    window.cerrarCortina();
-
-    setTimeout(() => {
-        // Hacemos el cambio de vista mientras está tapado
-        document.getElementById('dashboardSection').style.display = 'none';
-        document.getElementById('loginSection').style.display = 'flex';
-
-        // Volvemos a abrir la cortina para mostrar el Login
-        setTimeout(() => {
-            window.abrirCortina();
-        }, 300);
-    }, 800);
-}
-
-// 3. OPCIONAL: Si quieres que la cortina se cierre al darle F5 o refrescar el navegador
-window.addEventListener('beforeunload', () => {
-    window.cerrarCortina();
-});
 
 const USERS = {
     'joan':    { pass: '1234',  name: 'Joan Eras',  avatar: 'J' },
@@ -45,13 +8,12 @@ const USERS = {
     'admin':   { pass: 'admin', name: 'Super User', avatar: 'S' }
 };
 
-// Estados Globales
 let selectedSvc  = "";
 let selectedPago = "";
 let currentCitas = [];
 
 // ============================================================
-// 1. UTILIDADES Y NOTIFICACIONES (TOAST)
+// TOAST
 // ============================================================
 function showToast(msg, type = 'success', duration = 3500) {
     let container = document.getElementById('toast-container');
@@ -64,18 +26,15 @@ function showToast(msg, type = 'success', duration = 3500) {
     toast.className = `toast ${type}`;
     toast.textContent = msg;
     container.appendChild(toast);
-
-    // Animación de salida
     setTimeout(() => {
         toast.style.opacity = '0';
-        toast.style.transform = 'translateX(20px)';
-        toast.style.transition = 'all 0.3s ease';
+        toast.style.transition = 'opacity 0.3s ease';
         setTimeout(() => toast.remove(), 300);
     }, duration);
 }
 
 // ============================================================
-// 2. SISTEMA DE LOGIN Y SESIÓN
+// LOGIN
 // ============================================================
 document.getElementById('loginForm').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -83,58 +42,53 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
     const p = document.getElementById('pass').value;
 
     if (USERS[u] && USERS[u].pass === p) {
-        // Guardar en sesión simulada si fuera necesario
         document.getElementById('displayUserName').innerText = USERS[u].name;
         document.getElementById('avatarIcon').innerText     = USERS[u].avatar;
-
-        // Transición de interfaz
         document.getElementById('loginSection').style.display    = 'none';
         document.getElementById('dashboardSection').style.display = 'flex';
-
-        // Carga inicial de datos
+        showToast(`Bienvenido, ${USERS[u].name}`);
         inicializarDashboard();
-        showToast(`Bienvenido de nuevo, ${USERS[u].name}`);
     } else {
-        showToast('Credenciales incorrectas. Verifique usuario y contraseña.', 'error');
+        showToast('Usuario o contraseña incorrectos.', 'error');
     }
 });
 
+// ============================================================
+// LOGOUT const container = document.querySelector('#appointmentForm .bubbles');
+// ============================================================
 function logout() {
-    if (!confirm('¿Desea cerrar la sesión del sistema?')) return;
+    if (!confirm('¿Desea cerrar la sesión?')) return;
     document.getElementById('dashboardSection').style.display = 'none';
     document.getElementById('loginSection').style.display    = 'flex';
     document.getElementById('loginForm').reset();
-    showToast('Sesión finalizada.');
+    showToast('Sesión cerrada correctamente.');
 }
 
 // ============================================================
-// 3. NAVEGACIÓN Y TABS
+// NAVEGACIÓN
 // ============================================================
 function showTab(tabId, el) {
-    // Reset de botones
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     el.classList.add('active');
-
-    // Reset de paneles
     document.querySelectorAll('.tab-pane').forEach(t => t.classList.remove('active'));
-    const target = document.getElementById('tab-' + tabId);
-    target.classList.add('active');
+    document.getElementById('tab-' + tabId).classList.add('active');
 
-    // Cargas específicas según el tab
     if (tabId === 'servicios') renderServicios();
-    if (tabId === 'agenda') renderAppointments();
-    if (tabId === 'stats') actualizarEstadisticas();
+    if (tabId === 'agenda')    renderAppointments();
+    if (tabId === 'stats')     actualizarEstadisticas();
 }
 
 // ============================================================
-// 4. GESTIÓN DE SERVICIOS (API & BUBBLES)
+// BURBUJAS DE SERVICIOS
 // ============================================================
 async function cargarBubblesServicios() {
+    // ✅ Usa querySelector('.bubbles') igual que el HTML
     const container = document.getElementById('bubblesServicios');
     if (!container) return;
 
     try {
         const res = await fetch('/api/servicios');
+        if (!res.ok) return;
         const servicios = await res.json();
 
         container.innerHTML = '';
@@ -144,58 +98,260 @@ async function cargarBubblesServicios() {
             const div = document.createElement('div');
             div.className = 'b-opt';
             div.textContent = s.nombre;
-            div.onclick = () => {
-                document.querySelectorAll('#bubblesServicios .b-opt').forEach(b => b.classList.remove('active'));
+            div.addEventListener('click', () => {
+                document.querySelectorAll('#appointmentForm .bubbles .b-opt')
+                    .forEach(b => b.classList.remove('active'));
                 div.classList.add('active');
                 selectedSvc = s.nombre;
-
-                // Sincronizar slider de duración con el servicio
                 const slider = document.getElementById('duracion');
                 const label  = document.getElementById('durValue');
-                slider.value = s.duracionMin;
-                label.innerText = s.duracionMin;
-            };
+                if (s.duracionMin) {
+                    slider.value    = Math.min(s.duracionMin, 120);
+                    label.innerText = Math.min(s.duracionMin, 120);
+                }
+            });
             container.appendChild(div);
         });
     } catch (err) {
-        console.error("Error al cargar burbujas:", err);
+        showToast('No se pudieron cargar los servicios.', 'error');
     }
 }
 
+// ============================================================
+// MÉTODO DE PAGO
+// ============================================================
+function setPago(el, pago) {
+    document.querySelectorAll('.pago-opt').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    selectedPago = pago;
+}
+
+// ============================================================
+// SLIDER DURACIÓN
+// ============================================================
+document.getElementById('duracion').addEventListener('input', function () {
+    document.getElementById('durValue').innerText = this.value;
+});
+
+// ============================================================
+// CREAR CITA
+// ============================================================
+document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!selectedSvc)  { showToast('Selecciona un servicio.', 'error'); return; }
+    if (!selectedPago) { showToast('Selecciona un método de pago.', 'error'); return; }
+
+    const telefono = document.getElementById('telefono').value.trim();
+    if (!/^\d{8}$/.test(telefono)) {
+        showToast('El teléfono debe tener exactamente 8 dígitos.', 'error');
+        return;
+    }
+
+    const cedula = document.getElementById('cedula').value.trim();
+    if (!/^\d{9}$/.test(cedula)) {
+        showToast('La cédula debe tener exactamente 9 dígitos.', 'error');
+        return;
+    }
+
+    const fechaVal = document.getElementById('fecha').value;
+    if (new Date(fechaVal) < new Date()) {
+        showToast('No puedes agendar una cita en el pasado.', 'error');
+        return;
+    }
+
+    const data = {
+        clienteNombre: document.getElementById('nombre').value.trim(),
+        telefono,
+        cedula,
+        fechaHora:   fechaVal,
+        servicio:    selectedSvc,
+        metodoPago:  selectedPago,
+        duracionMin: parseInt(document.getElementById('duracion').value, 10)
+    };
+
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Guardando...';
+
+    try {
+        const res = await fetch('/api/appointments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+            e.target.reset();
+            resetSelecciones();
+            showToast('✅ Cita confirmada correctamente.');
+            renderAppointments();
+        } else {
+            const errText = await res.text();
+            showToast(errText || 'Error al guardar la cita.', 'error');
+        }
+    } catch (err) {
+        showToast('Error de conexión.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'CONFIRMAR';
+    }
+});
+
+// ============================================================
+// RENDERIZAR CITAS
+// ============================================================
+async function renderAppointments() {
+    const list = document.getElementById('appointmentsList');
+    if (!list) return;
+
+    try {
+        const res = await fetch('/api/appointments');
+        if (!res.ok) { showToast('Error al cargar las citas.', 'error'); return; }
+        currentCitas = await res.json();
+
+        actualizarEstadisticas();
+
+        if (currentCitas.length === 0) {
+            list.innerHTML = '<div class="empty-state"><span>📅</span>No hay citas registradas aún.</div>';
+            return;
+        }
+
+        list.innerHTML = '';
+        currentCitas.forEach(c => {
+            const card = document.createElement('div');
+            card.className = 'appt-card';
+
+            const info = document.createElement('div');
+
+            const svcLabel = document.createElement('div');
+            svcLabel.className = 'svc-label';
+            svcLabel.textContent = `${c.servicio} · ${c.duracionMin} min · ${c.metodoPago}`;
+
+            const nombre = document.createElement('h4');
+            nombre.textContent = c.clienteNombre;
+
+            const tel = document.createElement('small');
+            tel.style.display = 'block';
+            tel.textContent = `📞 ${c.telefono}`;
+
+            const ced = document.createElement('small');
+            ced.style.display = 'block';
+            ced.textContent = `🪪 ${c.cedula}`;
+
+            const fecha = document.createElement('small');
+            fecha.textContent = new Date(c.fechaHora).toLocaleString('es-CR');
+
+            info.appendChild(svcLabel);
+            info.appendChild(nombre);
+            info.appendChild(tel);
+            info.appendChild(ced);
+            info.appendChild(fecha);
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'btn-delete';
+            delBtn.textContent = '✕';
+            delBtn.title = 'Eliminar cita';
+            delBtn.addEventListener('click', () => eliminarCita(c.id, card));
+
+            card.appendChild(info);
+            card.appendChild(delBtn);
+            list.appendChild(card);
+        });
+
+        const query = document.getElementById('searchCedula')?.value;
+        if (query) filtrarCitas(query);
+
+    } catch (err) {
+        showToast('No se pudo conectar con el servidor.', 'error');
+    }
+}
+
+// ============================================================
+// ELIMINAR CITA
+// ============================================================
+async function eliminarCita(id, cardEl) {
+    if (!confirm('¿Eliminar esta cita?')) return;
+    try {
+        const res = await fetch(`/api/appointments/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            if (cardEl) {
+                cardEl.style.opacity = '0';
+                cardEl.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => renderAppointments(), 300);
+            } else renderAppointments();
+            showToast('Cita eliminada.');
+        } else {
+            showToast('No se pudo eliminar la cita.', 'error');
+        }
+    } catch (err) {
+        showToast('Error de conexión.', 'error');
+    }
+}
+
+// ============================================================
+// FILTRAR POR CÉDULA
+// ============================================================
+function filtrarCitas(query) {
+    const q = query.toLowerCase().trim();
+    document.querySelectorAll('.appt-card').forEach(card => {
+        card.style.display = card.innerText.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+
+// ============================================================
+// GESTIÓN DE SERVICIOS
+// ============================================================
 async function renderServicios() {
     const grid = document.getElementById('serviciosGrid');
     if (!grid) return;
 
     try {
         const res = await fetch('/api/servicios');
-        const data = await res.json();
-        grid.innerHTML = '';
+        if (!res.ok) return;
+        const servicios = await res.json();
 
-        data.forEach(s => {
+        grid.innerHTML = '';
+        servicios.forEach(s => {
             const card = document.createElement('div');
             card.className = 's-card';
-            card.innerHTML = `
-                <h4>${s.nombre}</h4>
-                <p>₡${s.precio.toLocaleString()}</p>
-                <small>${s.duracionMin} minutos</small>
-                <button class="btn-delete" style="width:100%; margin-top:15px;" onclick="eliminarServicio(${s.id})">
-                    Eliminar Servicio
-                </button>
-            `;
+
+            const h4 = document.createElement('h4');
+            h4.textContent = s.nombre;
+
+            const precio = document.createElement('p');
+            precio.textContent = `₡${s.precio.toLocaleString()}`;
+
+            const dur = document.createElement('small');
+            dur.textContent = `${s.duracionMin} min`;
+            dur.style.color = 'rgba(255,255,255,0.5)';
+            dur.style.display = 'block';
+            dur.style.marginBottom = '12px';
+
+            const btn = document.createElement('button');
+            btn.className = 'btn-delete';
+            btn.style.width = '100%';
+            btn.textContent = 'Eliminar';
+            btn.addEventListener('click', () => eliminarServicio(s.id));
+
+            card.appendChild(h4);
+            card.appendChild(precio);
+            card.appendChild(dur);
+            card.appendChild(btn);
             grid.appendChild(card);
         });
     } catch (err) {
-        showToast('Error al conectar con la lista de servicios.', 'error');
+        showToast('Error cargando servicios.', 'error');
     }
 }
 
 async function agregarServicio() {
     const nombre   = document.getElementById('svcNombre').value.trim();
-    const precio   = parseInt(document.getElementById('svcPrecio').value);
-    const duracion = parseInt(document.getElementById('svcDuracion').value);
+    const precio   = parseInt(document.getElementById('svcPrecio').value, 10);
+    const duracion = parseInt(document.getElementById('svcDuracion').value, 10);
 
     if (!nombre || isNaN(precio) || isNaN(duracion)) {
-        showToast('Por favor, complete todos los campos del servicio.', 'error');
+        showToast('Completá todos los campos del servicio.', 'error');
         return;
     }
 
@@ -207,205 +363,72 @@ async function agregarServicio() {
         });
 
         if (res.ok) {
-            showToast('Servicio agregado al catálogo.');
-            document.getElementById('svcNombre').value = '';
-            document.getElementById('svcPrecio').value = '';
+            document.getElementById('svcNombre').value   = '';
+            document.getElementById('svcPrecio').value   = '';
             document.getElementById('svcDuracion').value = '';
+            showToast('✅ Servicio agregado.');
             renderServicios();
             cargarBubblesServicios();
+        } else {
+            const err = await res.text();
+            showToast(err || 'Error al agregar servicio.', 'error');
         }
     } catch (err) {
-        showToast('Error al guardar servicio.', 'error');
+        showToast('Error de conexión.', 'error');
     }
 }
 
 async function eliminarServicio(id) {
-    if (!confirm('¿Desea eliminar este servicio? Esto lo quitará de las opciones de cita.')) return;
+    if (!confirm('¿Eliminar este servicio?')) return;
     try {
         const res = await fetch(`/api/servicios/${id}`, { method: 'DELETE' });
         if (res.ok) {
             showToast('Servicio eliminado.');
             renderServicios();
             cargarBubblesServicios();
-        }
-    } catch (err) {
-        showToast('Error al eliminar.', 'error');
-    }
-}
-
-// ============================================================
-// 5. GESTIÓN DE CITAS (AGENDA)
-// ============================================================
-function setPago(el, pago) {
-    document.querySelectorAll('.pago-opt').forEach(b => b.classList.remove('active'));
-    el.classList.add('active');
-    selectedPago = pago;
-}
-
-document.getElementById('duracion').oninput = function() {
-    document.getElementById('durValue').innerText = this.value;
-};
-
-document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    // Validaciones Extra
-    if (!selectedSvc)  return showToast('Debe seleccionar un servicio.', 'error');
-    if (!selectedPago) return showToast('Seleccione un método de pago.', 'error');
-
-    const tel = document.getElementById('telefono').value;
-    const ced = document.getElementById('cedula').value;
-
-    if (tel.length !== 8) return showToast('El teléfono debe tener 8 dígitos.', 'error');
-    if (ced.length !== 9) return showToast('La cédula debe tener 9 dígitos.', 'error');
-
-    const appointmentData = {
-        clienteNombre: document.getElementById('nombre').value.trim(),
-        telefono: tel,
-        cedula: ced,
-        fechaHora: document.getElementById('fecha').value,
-        servicio: selectedSvc,
-        metodoPago: selectedPago,
-        duracionMin: parseInt(document.getElementById('duracion').value)
-    };
-
-    const btn = e.target.querySelector('button[type="submit"]');
-    btn.disabled = true;
-    btn.innerHTML = 'PROCESANDO...';
-
-    try {
-        const res = await fetch('/api/appointments', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(appointmentData)
-        });
-
-        if (res.ok) {
-            showToast('✅ Cita agendada con éxito.');
-            e.target.reset();
-            resetSelecciones();
-            renderAppointments();
         } else {
-            const msg = await res.text();
-            showToast(msg || 'Error al agendar.', 'error');
+            showToast('No se pudo eliminar.', 'error');
         }
     } catch (err) {
-        showToast('Error de conexión con el servidor.', 'error');
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = 'CONFIRMAR';
-    }
-});
-
-async function renderAppointments() {
-    const list = document.getElementById('appointmentsList');
-    if (!list) return;
-
-    try {
-        const res = await fetch('/api/appointments');
-        currentCitas = await res.json();
-
-        actualizarEstadisticas();
-
-        if (currentCitas.length === 0) {
-            list.innerHTML = '<div class="empty-state"><span>📅</span>No hay citas pendientes.</div>';
-            return;
-        }
-
-        list.innerHTML = '';
-        currentCitas.forEach(c => {
-            const card = document.createElement('div');
-            card.className = 'appt-card';
-            card.innerHTML = `
-                <div>
-                    <div class="svc-label">${c.servicio} — ${c.duracionMin} min</div>
-                    <h4>${c.clienteNombre}</h4>
-                    <small>🪪 ${c.cedula} | 📞 ${c.telefono}</small><br>
-                    <small>🕒 ${new Date(c.fechaHora).toLocaleString('es-CR')}</small><br>
-                    <small>💰 Pago: ${c.metodoPago}</small>
-                </div>
-                <button class="btn-delete" onclick="eliminarCita(${c.id})">✕</button>
-            `;
-            list.appendChild(card);
-        });
-    } catch (err) {
-        console.error("Error al renderizar citas:", err);
-    }
-}
-
-async function eliminarCita(id) {
-    if (!confirm('¿Marcar cita como finalizada o cancelada?')) return;
-    try {
-        const res = await fetch(`/api/appointments/${id}`, { method: 'DELETE' });
-        if (res.ok) {
-            showToast('Cita removida de la agenda.');
-            renderAppointments();
-        }
-    } catch (err) {
-        showToast('No se pudo eliminar la cita.', 'error');
+        showToast('Error de conexión.', 'error');
     }
 }
 
 // ============================================================
-// 6. FILTROS Y BÚSQUEDA
+// ESTADÍSTICAS
 // ============================================================
-function filtrarCitas(query) {
-    const q = query.toLowerCase().trim();
-    const cards = document.querySelectorAll('.appt-card');
-
-    cards.forEach(card => {
-        const contenido = card.innerText.toLowerCase();
-        card.style.display = contenido.includes(q) ? 'flex' : 'none';
-    });
-}
-
-// ============================================================
-// 7. DASHBOARD & RELOJ
-// ============================================================
-function inicializarDashboard() {
-    cargarBubblesServicios();
-    renderAppointments();
-    actualizarEstadisticas();
-}
-
 function actualizarEstadisticas() {
     const totalEl = document.getElementById('totalCount');
     if (totalEl) totalEl.innerText = currentCitas.length;
 }
 
+// ============================================================
+// INICIALIZAR DASHBOARD
+// ============================================================
+function inicializarDashboard() {
+    cargarBubblesServicios();
+    renderAppointments();
+}
+
+// ============================================================
+// RESET SELECCIONES
+// ============================================================
 function resetSelecciones() {
-    selectedSvc = "";
+    selectedSvc  = "";
     selectedPago = "";
     document.querySelectorAll('.b-opt, .pago-opt').forEach(b => b.classList.remove('active'));
-    document.getElementById('durValue').innerText = "30";
-    document.getElementById('duracion').value = "30";
+    document.getElementById('durValue').innerText = '30';
+    document.getElementById('duracion').value     = '30';
 }
 
+// ============================================================
+// RELOJ
+// ============================================================
 function updateClock() {
-    const clock = document.getElementById('liveClock');
-    if (clock) {
-        const now = new Date();
-        clock.innerText = now.toLocaleTimeString('es-CR', {
-            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
-        });
-    }
+    const el = document.getElementById('liveClock');
+    if (el) el.innerText = new Date().toLocaleTimeString('es-CR', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+    });
 }
-
-// ============================================================
-// 8. CARGA INICIAL (LOADER)
-// ============================================================
-window.addEventListener('load', () => {
-    const loader = document.getElementById('curtain-loader');
-
-    // Iniciar Reloj
-    setInterval(updateClock, 1000);
-    updateClock();
-
-    // Lógica del Curtain Loader
-    setTimeout(() => {
-        loader.classList.add('loader-finished');
-        setTimeout(() => {
-            loader.style.display = 'none';
-        }, 1200);
-    }, 1500);
-});
+updateClock();
+setInterval(updateClock, 1000);

@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zenith Barber Cloud | Enterprise Edition</title>
-
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
-
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/portada.css">
 </head>
@@ -15,7 +13,6 @@
 <div id="curtain-loader">
     <div class="curtain-panel left-panel"></div>
     <div class="curtain-panel right-panel"></div>
-
     <div class="curtain-content">
         <div class="logo-wrapper">
             <h1 class="barber-name">ZENITH</h1>
@@ -58,12 +55,13 @@
             <button class="nav-btn active" onclick="showTab('agenda', this)">📅 Agenda Citas</button>
             <button class="nav-btn" onclick="showTab('servicios', this)">✂️ Lista Servicios</button>
             <button class="nav-btn" onclick="showTab('stats', this)">📊 Reportes</button>
-            <button class="nav-btn" onclick="refrescarPantalla()">🔄 Refrescar</button>
         </nav>
         <button onclick="logout()" class="btn-logout">Cerrar Sesión</button>
     </aside>
 
     <main class="content-area">
+
+        <!-- TAB AGENDA -->
         <div id="tab-agenda" class="tab-pane active">
             <header class="view-header">
                 <h2>Gestión de Citas</h2>
@@ -74,18 +72,15 @@
                     <h3>Nueva Reservación</h3>
                     <form id="appointmentForm">
                         <input type="text" id="nombre" placeholder="Nombre del Cliente" class="m-input" required>
-                        <input type="tel" id="telefono" placeholder="Teléfono" class="m-input" maxlength="8" required>
-                        <input type="text" id="cedula" placeholder="Cédula" class="m-input" maxlength="9" required>
+                        <input type="tel" id="telefono" placeholder="Teléfono (8 dígitos)" class="m-input" maxlength="8" required>
+                        <input type="text" id="cedula" placeholder="Cédula (9 dígitos)" class="m-input" maxlength="9" required>
                         <input type="datetime-local" id="fecha" class="m-input" required>
-
                         <div class="duration-control">
                             <label>Duración: <span id="durValue">30</span> min</label>
                             <input type="range" id="duracion" min="15" max="120" step="15" value="30">
                         </div>
-
                         <p class="label-s">SERVICIO</p>
                         <div class="bubbles" id="bubblesServicios"></div>
-
                         <p class="label-s">MÉTODO DE PAGO</p>
                         <div class="bubbles">
                             <div class="pago-opt b-opt" onclick="setPago(this, 'Efectivo')">💵 Efectivo</div>
@@ -95,30 +90,47 @@
                         <button type="submit" class="btn-action">CONFIRMAR</button>
                     </form>
                 </div>
-
                 <div class="glass-card">
                     <h3>Citas en Proceso</h3>
-                    <input type="text" id="searchCedula" class="m-input" placeholder="🔍 Buscar por cédula..." oninput="filtrarCitas(this.value)">
+                    <input type="text" id="searchCedula" class="m-input"
+                           placeholder="🔍 Buscar por cédula..."
+                           oninput="filtrarCitas(this.value)"
+                           style="margin-bottom: 14px;">
                     <div id="appointmentsList" class="scroll-v"></div>
                 </div>
             </div>
         </div>
 
+        <!-- TAB SERVICIOS -->
         <div id="tab-servicios" class="tab-pane">
             <header class="view-header">
                 <h2>Servicios Disponibles</h2>
             </header>
-            <div class="glass-card">
+            <div class="glass-card" style="padding: 24px; margin-bottom: 24px;">
                 <h3>Agregar Nuevo Servicio</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; margin-top: 16px; align-items: end;">
-                    <input type="text" id="svcNombre" placeholder="Nombre" class="m-input">
-                    <input type="number" id="svcPrecio" placeholder="Precio" class="m-input">
-                    <input type="number" id="svcDuracion" placeholder="Duración" class="m-input">
-                    <button class="btn-action" onclick="agregarServicio()">+ Agregar</button>
+                    <input type="text"   id="svcNombre"   placeholder="Nombre"         class="m-input" style="margin:0">
+                    <input type="number" id="svcPrecio"   placeholder="Precio (₡)"     class="m-input" style="margin:0" min="1">
+                    <input type="number" id="svcDuracion" placeholder="Duración (min)" class="m-input" style="margin:0" min="5">
+                    <button class="btn-action" style="padding: 14px 20px;" onclick="agregarServicio()">+ Agregar</button>
                 </div>
             </div>
             <div class="services-grid" id="serviciosGrid"></div>
         </div>
+
+        <!-- TAB REPORTES -->
+        <div id="tab-stats" class="tab-pane">
+            <header class="view-header">
+                <h2>Análisis de Rendimiento</h2>
+            </header>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <p>Total Citas</p>
+                    <strong id="totalCount">0</strong>
+                </div>
+            </div>
+        </div>
+
     </main>
 </section>
 
