@@ -1,20 +1,26 @@
-// Función para activar la animación de la cortina
-function ejecutarPortada() {
+// js/inicio.js
+
+window.ejecutarPortada = function() {
     const loader = document.getElementById('curtain-loader');
 
-    // Reset en caso de que tuviera las clases (para reutilizarla)
+    // Quitamos las clases de cierre para que vuelva a aparecer
     loader.classList.remove('loader-finished', 'loader-none');
 
-    // 1. Tiempo para que el usuario vea el nombre
+    // Reiniciamos la animación de la línea (opcional)
+    const line = loader.querySelector('.shave-line');
+    if(line) {
+        line.style.animation = 'none';
+        line.offsetHeight; // Truco para reiniciar animación
+        line.style.animation = null;
+    }
+
     setTimeout(() => {
         loader.classList.add('loader-finished');
-
-        // 2. Quitamos el display none después de la transición (1.2s)
         setTimeout(() => {
             loader.classList.add('loader-none');
         }, 1200);
     }, 1500);
-}
+};
 
-// Se ejecuta automáticamente al cargar la ventana
-window.addEventListener('load', ejecutarPortada);
+// Auto-ejecución al cargar la web por primera vez
+document.addEventListener('DOMContentLoaded', window.ejecutarPortada);EventListener('load', ejecutarPortada);

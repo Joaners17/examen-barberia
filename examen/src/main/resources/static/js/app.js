@@ -2,6 +2,24 @@
 // ZENITH BARBER CLOUD — app.js (FULL EXTENDED VERSION)
 // ============================================================
 
+// Esta función la puedes llamar desde botones o al cambiar de sección
+function refrescarPantalla() {
+    // Llamamos a la función que vive en inicio.js
+    if (typeof window.ejecutarPortada === 'function') {
+        window.ejecutarPortada();
+    }
+}
+
+// Ejemplo: Al cerrar sesión, refrescamos con la cortina
+function logout() {
+    window.ejecutarPortada(); // Primero cerramos la cortina
+
+    setTimeout(() => {
+        document.getElementById('dashboardSection').style.display = 'none';
+        document.getElementById('loginSection').style.display = 'flex';
+        document.getElementById('loginForm').reset();
+    }, 800); // Cambiamos el fondo mientras la cortina está cerrada
+}
 const USERS = {
     'joan':    { pass: '1234',  name: 'Joan Eras',  avatar: 'J' },
     'anthony': { pass: '5678',  name: 'Anthony',    avatar: 'A' },
