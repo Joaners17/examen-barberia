@@ -17,7 +17,6 @@ public class AppointmentService {
         this.repository = repository;
     }
 
-    // Lista todas las citas; filtra por email si se proporciona
     public List<Appointment> listarTodas(String clienteEmail) {
         if (clienteEmail != null && !clienteEmail.isBlank()) {
             return repository.findByClienteEmail(clienteEmail);
@@ -25,11 +24,9 @@ public class AppointmentService {
         return repository.findAll();
     }
 
-    // @Transactional para reducir condiciones de carrera
     @Transactional
     public Appointment guardar(Appointment cita) {
 
-        // ── Validaciones ─────────────────────────────────────────────────────
         if (cita.getClienteNombre() == null || cita.getClienteNombre().isBlank())
             throw new IllegalArgumentException("El nombre del cliente es obligatorio.");
 
@@ -45,21 +42,15 @@ public class AppointmentService {
         if (cita.getFechaHora().isBefore(LocalDateTime.now()))
             throw new IllegalArgumentException("No se puede agendar una cita en el pasado.");
 
-        // duracionMin: default 30 si no se envía
         if (cita.getDuracionMin() <= 0) {
             cita.setDuracionMin(30);
         }
 
-        // ── Detección de solapamiento ─────────────────────────────────────────
-        // Intervalo nuevo: [nuevoInicio, nuevoFin)
         LocalDateTime nuevoInicio = cita.getFechaHora();
         LocalDateTime nuevoFin    = nuevoInicio.plusMinutes(cita.getDuracionMin());
 
-        // Traemos candidatas: citas RESERVADAS cuyo inicio < nuevoFin
         List<Appointment> candidatas = repository.findReservadasAntesDeNuevoFin(nuevoFin);
 
-        // Filtramos en Java: solapamiento si finExistente > nuevoInicio
-        // finExistente = fechaHora + duracionMin  (calculado en Java, sin FUNCTION())
         boolean haySolapamiento = candidatas.stream().anyMatch(existente -> {
             LocalDateTime finExistente = existente.getFechaHora()
                     .plusMinutes(existente.getDuracionMin());
@@ -82,11 +73,9 @@ public class AppointmentService {
             );
         }
 
-        // estado y creadoEn se asignan en @PrePersist de Appointment
         return repository.save(cita);
     }
 
-    // Cancela la cita (marca estado = CANCELADA, NO borra el registro)
     @Transactional
     public void cancelar(Long id) {
         Appointment cita = repository.findById(id)
@@ -98,8 +87,6 @@ public class AppointmentService {
         cita.setEstado(Appointment.Estado.CANCELADA);
         repository.save(cita);
     }
-
-    // ── Excepciones ──────────────────────────────────────────────────────────
 
     public static class ConflictException extends RuntimeException {
         public ConflictException(String msg) { super(msg); }

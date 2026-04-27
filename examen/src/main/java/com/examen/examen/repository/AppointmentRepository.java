@@ -12,13 +12,8 @@ import java.util.List;
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
 
-    // Filtrar por email (GET ?clienteEmail=xxx)
     List<Appointment> findByClienteEmail(String clienteEmail);
 
-    // Trae citas RESERVADAS cuyo inicio sea antes del fin del nuevo intervalo.
-    // El filtro del otro extremo (fin de la cita existente > inicio nuevo) se
-    // hace en Java dentro del Service, así evitamos FUNCTION() que falla en
-    // Hibernate 6 con H2.
     @Query("""
         SELECT a FROM Appointment a
         WHERE a.estado = com.Examen.examen.model.Appointment$Estado.RESERVADA

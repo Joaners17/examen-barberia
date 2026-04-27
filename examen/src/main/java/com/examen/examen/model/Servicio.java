@@ -11,8 +11,8 @@ public class Servicio {
     private Long id;
 
     private String nombre;
-    private int precio;         // Precio en colones
-    private int duracionMin;    // Duración sugerida en minutos
+    private int precio;
+    private int duracionMin;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

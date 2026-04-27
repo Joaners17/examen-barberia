@@ -1,7 +1,3 @@
-// ============================================================
-// ZENITH BARBER CLOUD — app.js  (VERSIÓN CORREGIDA)
-// ============================================================
-
 const USERS = {
     'joan':    { pass: '1234',  name: 'Joan Eras',  avatar: 'J' },
     'anthony': { pass: '5678',  name: 'Anthony',    avatar: 'A' },
@@ -12,9 +8,6 @@ let selectedSvc  = "";
 let selectedPago = "";
 let currentCitas = [];
 
-// ============================================================
-// TOAST
-// ============================================================
 function showToast(msg, type = 'success', duration = 3500) {
     let container = document.getElementById('toast-container');
     if (!container) {
@@ -33,9 +26,6 @@ function showToast(msg, type = 'success', duration = 3500) {
     }, duration);
 }
 
-// ============================================================
-// LOGIN
-// ============================================================
 document.getElementById('loginForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const u = document.getElementById('user').value.trim();
@@ -53,9 +43,6 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
     }
 });
 
-// ============================================================
-// LOGOUT
-// ============================================================
 function logout() {
     if (!confirm('¿Desea cerrar la sesión?')) return;
     document.getElementById('dashboardSection').style.display = 'none';
@@ -64,9 +51,6 @@ function logout() {
     showToast('Sesión cerrada correctamente.');
 }
 
-// ============================================================
-// NAVEGACIÓN
-// ============================================================
 function showTab(tabId, el) {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     el.classList.add('active');
@@ -78,9 +62,6 @@ function showTab(tabId, el) {
     if (tabId === 'stats')     actualizarEstadisticas();
 }
 
-// ============================================================
-// BURBUJAS DE SERVICIOS
-// ============================================================
 async function cargarBubblesServicios() {
     const container = document.getElementById('bubblesServicios');
     if (!container) return;
@@ -116,29 +97,19 @@ async function cargarBubblesServicios() {
     }
 }
 
-// ============================================================
-// MÉTODO DE PAGO
-// ============================================================
 function setPago(el, pago) {
     document.querySelectorAll('.pago-opt').forEach(b => b.classList.remove('active'));
     el.classList.add('active');
     selectedPago = pago;
 }
 
-// ============================================================
-// SLIDER DURACIÓN
-// ============================================================
 document.getElementById('duracion').addEventListener('input', function () {
     document.getElementById('durValue').innerText = this.value;
 });
 
-// ============================================================
-// CREAR CITA — con campo email y manejo de 409 Conflict
-// ============================================================
 document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // ✅ Validaciones en frontend
     const email = document.getElementById('email').value.trim();
     if (!email) { showToast('El email es obligatorio.', 'error'); return; }
 
@@ -155,7 +126,6 @@ document.getElementById('appointmentForm').addEventListener('submit', async (e) 
         return;
     }
 
-    // ✅ Body con los campos del enunciado
     const data = {
         clienteNombre:    document.getElementById('nombre').value.trim(),
         clienteEmail:     email,
@@ -182,7 +152,6 @@ document.getElementById('appointmentForm').addEventListener('submit', async (e) 
             renderAppointments();
 
         } else if (res.status === 409) {
-            // ✅ Manejo especial del conflicto de solapamiento
             const body = await res.json();
             showToast('⚠️ ' + (body.error || 'Conflicto de horario.'), 'error', 6000);
 
@@ -198,15 +167,11 @@ document.getElementById('appointmentForm').addEventListener('submit', async (e) 
     }
 });
 
-// ============================================================
-// RENDERIZAR CITAS
-// ============================================================
 async function renderAppointments(emailFiltro = '') {
     const list = document.getElementById('appointmentsList');
     if (!list) return;
 
     try {
-        // ✅ Filtro por email via query param
         const url = emailFiltro
             ? `/api/appointments?clienteEmail=${encodeURIComponent(emailFiltro)}`
             : '/api/appointments';
@@ -227,7 +192,6 @@ async function renderAppointments(emailFiltro = '') {
             const card = document.createElement('div');
             card.className = 'appt-card';
 
-            // ✅ Badge de estado (RESERVADA / CANCELADA)
             const estadoBadge = document.createElement('div');
             estadoBadge.style.cssText = `
                 display: inline-block;
@@ -272,7 +236,6 @@ async function renderAppointments(emailFiltro = '') {
 
             card.appendChild(info);
 
-            // ✅ Solo mostrar botón cancelar si la cita está RESERVADA
             if (c.estado === 'RESERVADA') {
                 const delBtn = document.createElement('button');
                 delBtn.className = 'btn-delete';
@@ -290,17 +253,11 @@ async function renderAppointments(emailFiltro = '') {
     }
 }
 
-// ============================================================
-// FILTRAR POR EMAIL (llama al backend con ?clienteEmail=)
-// ============================================================
 function filtrarPorEmail() {
     const email = document.getElementById('searchEmail').value.trim();
     renderAppointments(email);
 }
 
-// ============================================================
-// CANCELAR CITA (DELETE → marca como CANCELADA)
-// ============================================================
 async function cancelarCita(id, cardEl) {
     if (!confirm('¿Cancelar esta cita?')) return;
     try {
@@ -323,9 +280,6 @@ async function cancelarCita(id, cardEl) {
     }
 }
 
-// ============================================================
-// GESTIÓN DE SERVICIOS
-// ============================================================
 async function renderServicios() {
     const grid = document.getElementById('serviciosGrid');
     if (!grid) return;
@@ -417,9 +371,6 @@ async function eliminarServicio(id) {
     }
 }
 
-// ============================================================
-// ESTADÍSTICAS
-// ============================================================
 function actualizarEstadisticas() {
     const totalEl      = document.getElementById('totalCount');
     const reservadasEl = document.getElementById('reservadasCount');
@@ -430,17 +381,11 @@ function actualizarEstadisticas() {
     if (canceladasEl) canceladasEl.innerText = currentCitas.filter(c => c.estado === 'CANCELADA').length;
 }
 
-// ============================================================
-// INICIALIZAR DASHBOARD
-// ============================================================
 function inicializarDashboard() {
     cargarBubblesServicios();
     renderAppointments();
 }
 
-// ============================================================
-// RESET SELECCIONES
-// ============================================================
 function resetSelecciones() {
     selectedSvc  = "";
     selectedPago = "";
@@ -449,9 +394,6 @@ function resetSelecciones() {
     document.getElementById('duracion').value     = '30';
 }
 
-// ============================================================
-// RELOJ
-// ============================================================
 function updateClock() {
     const el = document.getElementById('liveClock');
     if (el) el.innerText = new Date().toLocaleTimeString('es-CR', {

@@ -61,7 +61,6 @@
 
     <main class="content-area">
 
-        <!-- TAB AGENDA -->
         <div id="tab-agenda" class="tab-pane active">
             <header class="view-header">
                 <h2>Gestión de Citas</h2>
@@ -71,15 +70,9 @@
                 <div class="glass-card">
                     <h3>Nueva Reservación</h3>
                     <form id="appointmentForm">
-                        <!-- ✅ Campo nombre -->
                         <input type="text" id="nombre" placeholder="Nombre del Cliente" class="m-input" required>
-
-                        <!-- ✅ Campo clienteEmail (REQUERIDO por enunciado) -->
                         <input type="email" id="email" placeholder="Email del Cliente" class="m-input" required>
-
-                        <!-- ✅ clienteTelefono (opcional según enunciado) -->
                         <input type="tel" id="telefono" placeholder="Teléfono (opcional)" class="m-input" maxlength="8">
-
                         <input type="datetime-local" id="fecha" class="m-input" required>
                         <div class="duration-control">
                             <label>Duración: <span id="durValue">30</span> min</label>
@@ -98,7 +91,6 @@
                 </div>
                 <div class="glass-card">
                     <h3>Citas en Proceso</h3>
-                    <!-- ✅ Filtro por email (GET ?clienteEmail=xxx) -->
                     <input type="text" id="searchEmail" class="m-input"
                            placeholder="🔍 Filtrar por email..."
                            style="margin-bottom: 14px;">
@@ -111,7 +103,6 @@
             </div>
         </div>
 
-        <!-- TAB SERVICIOS -->
         <div id="tab-servicios" class="tab-pane">
             <header class="view-header">
                 <h2>Servicios Disponibles</h2>
@@ -128,7 +119,6 @@
             <div class="services-grid" id="serviciosGrid"></div>
         </div>
 
-        <!-- TAB REPORTES -->
         <div id="tab-stats" class="tab-pane">
             <header class="view-header">
                 <h2>Análisis de Rendimiento</h2>
@@ -138,7 +128,6 @@
                     <p>Total Citas</p>
                     <strong id="totalCount">0</strong>
                 </div>
-                <!-- ✅ Nuevas estadísticas por estado -->
                 <div class="stat-box">
                     <p>Reservadas</p>
                     <strong id="reservadasCount">0</strong>

@@ -14,11 +14,11 @@ public class User {
     private String username;
 
     @Column(nullable = false)
-    private String password; // ⚠️ En producción: usar BCrypt para encriptar
+    private String password;
 
     private String nombreCompleto;
 
-    // ✅ Getter y Setter para id (faltaba en el original)
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

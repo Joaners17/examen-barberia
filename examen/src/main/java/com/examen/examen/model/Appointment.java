@@ -11,10 +11,9 @@ public class Appointment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // ✅ CAMPOS OBLIGATORIOS DEL ENUNCIADO
     private String clienteNombre;
     private String clienteEmail;
-    private String clienteTelefono;   // opcional según enunciado
+    private String clienteTelefono;
 
     private LocalDateTime fechaHora;
     private int duracionMin;
@@ -24,20 +23,16 @@ public class Appointment {
 
     private LocalDateTime creadoEn;
 
-    // ✅ Enum de estado dentro del mismo archivo o puedes crear uno aparte
     public enum Estado {
         RESERVADA, CANCELADA
     }
 
-    // ✅ Al persistir por primera vez: asignar creadoEn y estado por defecto
     @PrePersist
     public void prePersist() {
         if (this.creadoEn == null)  this.creadoEn  = LocalDateTime.now();
         if (this.estado   == null)  this.estado    = Estado.RESERVADA;
-        if (this.duracionMin <= 0)  this.duracionMin = 30;  // default 30 min
+        if (this.duracionMin <= 0)  this.duracionMin = 30;
     }
-
-    // ─── Getters y Setters ───────────────────────────────────────────────────
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

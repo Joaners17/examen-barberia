@@ -16,7 +16,6 @@ public class ServicioService {
         this.repository = repository;
     }
 
-    // ✅ Carga los servicios por defecto al iniciar si no hay ninguno
     @PostConstruct
     public void cargarDatosIniciales() {
         if (repository.count() == 0) {
