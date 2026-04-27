@@ -1,26 +1,31 @@
 // js/inicio.js
 
-window.ejecutarPortada = function() {
+// Función para ABRIR la cortina (De centro hacia afuera)
+window.abrirCortina = function() {
     const loader = document.getElementById('curtain-loader');
+    if (!loader) return;
 
-    // Quitamos las clases de cierre para que vuelva a aparecer
-    loader.classList.remove('loader-finished', 'loader-none');
-
-    // Reiniciamos la animación de la línea (opcional)
-    const line = loader.querySelector('.shave-line');
-    if(line) {
-        line.style.animation = 'none';
-        line.offsetHeight; // Truco para reiniciar animación
-        line.style.animation = null;
-    }
-
+    loader.classList.remove('loader-none');
+    // Pequeño delay para que el navegador procese el render
     setTimeout(() => {
         loader.classList.add('loader-finished');
+        // Quitamos el display después de la animación (1.2s)
         setTimeout(() => {
             loader.classList.add('loader-none');
         }, 1200);
-    }, 1500);
+    }, 500);
 };
 
-// Auto-ejecución al cargar la web por primera vez
-document.addEventListener('DOMContentLoaded', window.ejecutarPortada);EventListener('load', ejecutarPortada);
+// Función para CERRAR la cortina (De afuera hacia el centro)
+window.cerrarCortina = function() {
+    const loader = document.getElementById('curtain-loader');
+    if (!loader) return;
+
+    loader.classList.remove('loader-none');
+    // Forzamos un reflow para que el CSS reinicie la posición
+    loader.offsetHeight;
+    loader.classList.remove('loader-finished');
+};
+
+// Se ejecuta solo al cargar la página por primera vez
+document.addEventListener('DOMContentLoaded', window.abrirCortina);

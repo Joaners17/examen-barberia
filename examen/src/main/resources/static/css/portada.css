@@ -1,15 +1,82 @@
+/* css/portada.css */
+:root {
+    --gold: #d4af37;
+    --dark: #0a0a0a;
+}
+
 #curtain-loader {
     position: fixed;
-    inset: 0; /* Cubre toda la pantalla */
-    z-index: 99999; /* Por encima de todo */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 10000;
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    background: transparent; /* Para ver los paneles */
 }
 
-/* El resto de tu código de portada.css se mantiene igual... */
+.curtain-panel {
+    position: absolute;
+    top: 0;
+    width: 51%; /* 51% para evitar la línea blanca en el centro */
+    height: 100%;
+    background-color: var(--dark);
+    /* Transición suave para abrir y cerrar */
+    transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.left-panel {
+    left: 0;
+    border-right: 1px solid rgba(212, 175, 55, 0.3);
+    transform: translateX(0); /* Estado cerrado por defecto */
+}
+
+.right-panel {
+    right: 0;
+    border-left: 1px solid rgba(212, 175, 55, 0.3);
+    transform: translateX(0); /* Estado cerrado por defecto */
+}
+
+.curtain-content {
+    position: relative;
+    z-index: 10001;
+    text-align: center;
+    transition: opacity 0.5s ease, transform 0.8s ease;
+}
+
+/* Estado ABIERTO (Cuando se activa la clase) */
+.loader-finished .left-panel {
+    transform: translateX(-100%);
+}
+
+.loader-finished .right-panel {
+    transform: translateX(100%);
+}
+
+.loader-finished .curtain-content {
+    opacity: 0;
+    transform: scale(1.2);
+    pointer-events: none;
+}
+
 .loader-none {
     display: none !important;
 }
+
+/* Estilos de texto */
+.barber-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 4rem;
+    color: var(--gold);
+    letter-spacing: 12px;
+}
+.shave-line {
+    width: 0%;
+    height: 2px;
+    background: var(--gold);
+    margin: 15px auto;
+    animation: expandLine 1.5s forwards;
+}
+@keyframes expandLine { to { width: 100%; } }

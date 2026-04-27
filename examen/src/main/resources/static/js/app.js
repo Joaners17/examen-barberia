@@ -2,24 +2,43 @@
 // ZENITH BARBER CLOUD — app.js (FULL EXTENDED VERSION)
 // ============================================================
 
-// Esta función la puedes llamar desde botones o al cambiar de sección
+// js/app.js
+
+// 1. Vincular el botón "Refrescar" del Dashboard
 function refrescarPantalla() {
-    // Llamamos a la función que vive en inicio.js
-    if (typeof window.ejecutarPortada === 'function') {
-        window.ejecutarPortada();
-    }
+    // Cerramos la cortina
+    window.cerrarCortina();
+
+    // Esperamos a que se cierre para simular la carga y volver a abrirla
+    setTimeout(() => {
+        // Aquí podrías recargar datos de la API si quieres
+        console.log("Sistema Refrescado");
+
+        window.abrirCortina();
+    }, 1000);
 }
 
-// Ejemplo: Al cerrar sesión, refrescamos con la cortina
+// 2. Vincular el Logout
 function logout() {
-    window.ejecutarPortada(); // Primero cerramos la cortina
+    window.cerrarCortina();
 
     setTimeout(() => {
+        // Hacemos el cambio de vista mientras está tapado
         document.getElementById('dashboardSection').style.display = 'none';
         document.getElementById('loginSection').style.display = 'flex';
-        document.getElementById('loginForm').reset();
-    }, 800); // Cambiamos el fondo mientras la cortina está cerrada
+
+        // Volvemos a abrir la cortina para mostrar el Login
+        setTimeout(() => {
+            window.abrirCortina();
+        }, 300);
+    }, 800);
 }
+
+// 3. OPCIONAL: Si quieres que la cortina se cierre al darle F5 o refrescar el navegador
+window.addEventListener('beforeunload', () => {
+    window.cerrarCortina();
+});
+
 const USERS = {
     'joan':    { pass: '1234',  name: 'Joan Eras',  avatar: 'J' },
     'anthony': { pass: '5678',  name: 'Anthony',    avatar: 'A' },
